@@ -1,10 +1,10 @@
-from scrapers import PortalInmobiliarioScraper
+from scrapers import PortalInmobiliarioScraper, YapoScraper
 
 if __name__ == "__main__":
     # Aquí se pueden instanciar y ejecutar múltiples scrapers
     scrapers = [
         PortalInmobiliarioScraper(),
-        # FutureScraper(),
+        YapoScraper(),
     ]
 
     for scraper in scrapers:
