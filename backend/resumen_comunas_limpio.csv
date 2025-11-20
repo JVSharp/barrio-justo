@@ -1,0 +1,38 @@
+comuna,tipo_inmueble,tipo_operacion,promedio_uf,promedio_clp,cantidad
+Arauco,casa,venta,3470.0,136184140.0,12
+Cabrero,casa,venta,7378.0,289558094.6,15
+Canete,casa,venta,4733.333333333333,185765110.0,9
+Chiguayante,casa,arriendo,57.6,2260577.8,30
+Chiguayante,casa,venta,13937.853260869566,547007079.6222826,368
+Chiguayante,departamento,arriendo,47.5,1864191.5,6
+Chiguayante,departamento,venta,7655.125,300434183.8,240
+Concepcion,casa,arriendo,97.85714285714286,3840515.8571428573,21
+Concepcion,casa,venta,11080.265060240963,434857744.4578313,249
+Concepcion,departamento,arriendo,22.0,863415.0,9
+Concepcion,departamento,venta,4033.4777777777776,158298473.55555555,270
+Coronel,casa,venta,10223.818181818182,401245501.77272725,66
+Coronel,departamento,venta,1413.3333333333333,55467891.666666664,9
+Florida,casa,venta,10136.333333333334,397812058.0,9
+Hualpen,casa,arriendo,69.0,2707984.0,12
+Hualpen,casa,venta,4652.695652173913,182600391.3478261,69
+Hualpen,departamento,venta,2256.6944444444443,88566568.3611111,108
+Hualqui,casa,venta,7028.0,275821941.9,30
+Los Angeles,casa,arriendo,40.0,1569846.0,3
+Los Angeles,casa,venta,8195.78,321652811.1,150
+Los Angeles,departamento,arriendo,3250.0,127549987.0,3
+Los Angeles,departamento,venta,3726.7704918032787,146261393.5081967,183
+Lota,casa,venta,3636.0,142699001.0,9
+Negrete,casa,venta,3463.0,135909417.0,3
+Penco,casa,venta,7687.35294117647,301699006.35294116,51
+Penco,departamento,venta,1812.0,71114023.66666667,36
+San Pedro De La Paz,casa,arriendo,73.25,2874780.25,24
+San Pedro De La Paz,casa,venta,12596.359550561798,494358616.2247191,267
+San Pedro De La Paz,departamento,arriendo,28.0,1098892.0,3
+San Pedro De La Paz,departamento,venta,6058.5360824742265,237774215.7216495,291
+Santa Barbara,casa,venta,6900.0,270798435.0,3
+Santa Juana,casa,venta,5686.0,223153608.8,15
+Talcahuano,casa,arriendo,20.0,784923.0,3
+Talcahuano,casa,venta,5548.222222222223,217746361.35185185,162
+Talcahuano,departamento,venta,3440.0454545454545,135008539.72727272,132
+Tome,casa,venta,8734.397435897436,342791471.71794873,234
+Tome,departamento,venta,5440.666666666667,213525219.93333334,45
