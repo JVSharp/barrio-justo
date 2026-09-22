@@ -20,16 +20,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: pip install -r backend/requirements.txt
       - name: Exportar la demo a JSON
         run: python scripts/exportar_estatico.py
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: comuna-frontend/package-lock.json
       - name: Build estático
@@ -38,7 +38,7 @@ jobs:
           VITE_MODO: estatico
           VITE_BASE: /comuna-dash/
         run: npm ci && npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: comuna-frontend/dist
 
