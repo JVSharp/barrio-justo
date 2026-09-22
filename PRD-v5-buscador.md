@@ -81,4 +81,12 @@ transporte (solo distancia), sombra de cerros, alertas.
 
 ## Registro de construcción
 
-_(se completa al terminar)_
+**2026-09-22 · construido y publicado** (repo renombrado a `barrio-justo`, demo en jvsharp.github.io/barrio-justo)
+
+- `sol.py` (NOAA + horizonte por azimut) y `geo.py` (índice en grilla, cercanía, sol por piso). Sin dependencias nuevas.
+- `descargar_osm.py` con caché por tesela, reanudable, 3 servidores Overpass y solo teselas con avisos (121 → 46). Lugares de interés reales descargados completos; edificios reales pendientes (Overpass saturado).
+- Demo: cercanía con lugares reales de OSM; sol calculado sobre una ciudad ficticia (`generar_edificios_demo.py`) y rotulado así en la interfaz (`sol_fuente = "demo"`).
+- Buscador: filtros duros en backend (`/buscador`), puntaje en el navegador (`puntaje.js`, tests con `node:test`), mapa con resultados y lugares.
+- Bugs encontrados en el camino: índice 360 en `horizonte()`; `sol_fuente` leído como número; la demo en Pages servía `datos.json` en caché tras un deploy (ahora lleva marca de build).
+- Tests: 61 → 79 backend + 8 frontend.
+
