@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Sun, MapPin, Tag } from 'lucide-react';
 import { api, clp, num, uf } from '../api';
 import { CERCANIA, PISOS, rankear } from '../puntaje';
 import Segmentado from './Segmentado';
 import MapaBuscador from './MapaBuscador';
+import Icono from './Icono';
 
 const IMPORTANCIA = [
   { valor: 0, etiqueta: 'No' },
@@ -21,6 +21,26 @@ const OPERACIONES = [
   { valor: 'arriendo', etiqueta: 'Arrendar' },
 ];
 const POR_PAGINA = 20;
+const ICONO_CRITERIO = {
+  precio: 'tag-price',
+  sol: 'sun',
+  biotren: 'tram',
+  universidad: 'square-academic-cap',
+  colegio: 'backpack',
+  salud: 'hospital',
+  supermercado: 'cart-large-2',
+  parque: 'leaf',
+};
+const CAMPO = 'mt-1 block w-full rounded-lg border border-arena-400 bg-arena-50 px-3 py-2 text-sm focus:border-sol-600 focus:outline-none focus:ring-1 focus:ring-sol-600';
+
+function Titulo({ n, children }) {
+  return (
+    <h2 className="flex items-baseline gap-2 text-base font-semibold text-stone-900">
+      <span className="marca-num">{n}</span>
+      {children}
+    </h2>
+  );
+}
 
 export default function Buscador() {
   const [perfil, setPerfil] = useState({ operacion: 'venta', tipo: '', presupuesto: '', dorm: 0, comunas: [] });
@@ -71,11 +91,11 @@ export default function Buscador() {
     setPerfil((p) => ({ ...p, comunas: p.comunas.includes(c) ? p.comunas.filter((x) => x !== c) : [...p.comunas, c] }));
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+    <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
       {/* ---------------- Perfil ---------------- */}
-      <aside className="space-y-6 lg:sticky lg:top-4 lg:self-start">
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold text-stone-900">Qué buscas</h2>
+      <aside className="space-y-5 lg:sticky lg:top-4 lg:self-start">
+        <section className="space-y-3 rounded-2xl border border-arena-300 bg-arena-50 p-5 shadow-suave">
+          <Titulo n="01">Qué buscas</Titulo>
           <Segmentado opciones={OPERACIONES} valor={perfil.operacion} onChange={set('operacion')} etiqueta="Operación" />
           <Segmentado opciones={TIPOS} valor={perfil.tipo} onChange={set('tipo')} etiqueta="Tipo" />
           <label className="block text-sm text-stone-600">
@@ -87,7 +107,7 @@ export default function Buscador() {
               placeholder={perfil.operacion === 'arriendo' ? 'ej. 18' : 'ej. 4500'}
               value={perfil.presupuesto}
               onChange={(e) => set('presupuesto')(e.target.value)}
-              className="num mt-1 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-teal-700"
+              className={`num ${CAMPO}`}
             />
           </label>
           <div className="text-sm text-stone-600">
@@ -105,7 +125,7 @@ export default function Buscador() {
                     onClick={() => toggleComuna(c)}
                     aria-pressed={on}
                     className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                      on ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 bg-white text-stone-600 hover:bg-stone-100'
+                      on ? 'border-stone-900 bg-stone-900 text-arena-50' : 'border-arena-400 bg-arena-50 text-stone-600 hover:bg-arena-200'
                     }`}
                   >
                     {c}
@@ -116,17 +136,17 @@ export default function Buscador() {
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold text-stone-900">Qué te importa</h2>
-          <Criterio etiqueta="Precio bajo el mercado" valor={pesos.precio} onChange={(v) => setPesos((p) => ({ ...p, precio: v }))} />
-          <Criterio etiqueta="Sol en invierno" valor={pesos.sol} onChange={(v) => setPesos((p) => ({ ...p, sol: v }))}>
+        <section className="space-y-3 rounded-2xl border border-arena-300 bg-arena-50 p-5 shadow-suave">
+          <Titulo n="02">Qué te importa</Titulo>
+          <Criterio icono="tag-price" etiqueta="Precio bajo el mercado" valor={pesos.precio} onChange={(v) => setPesos((p) => ({ ...p, precio: v }))} />
+          <Criterio icono="sun" etiqueta="Sol en invierno" valor={pesos.sol} onChange={(v) => setPesos((p) => ({ ...p, sol: v }))}>
             {pesos.sol > 0 && (
               <div className="mt-2 flex items-center gap-2 text-xs text-stone-500">
                 Mirando desde
                 <select
                   value={piso}
                   onChange={(e) => setPiso(e.target.value)}
-                  className="rounded border border-stone-300 bg-white px-1.5 py-0.5 text-xs text-stone-700"
+                  className="rounded-md border border-arena-400 bg-arena-50 px-1.5 py-0.5 text-xs text-stone-700"
                 >
                   {PISOS.map((p) => (
                     <option key={p.valor} value={p.valor}>
@@ -137,10 +157,11 @@ export default function Buscador() {
               </div>
             )}
           </Criterio>
-          <p className="pt-1 text-xs font-medium uppercase tracking-wide text-stone-400">Cerca de</p>
+          <p className="border-t border-arena-300 pt-3 text-xs font-medium uppercase tracking-wide text-stone-400">Cerca de</p>
           {CERCANIA.map((c) => (
             <Criterio
               key={c.clave}
+              icono={ICONO_CRITERIO[c.clave]}
               etiqueta={c.etiqueta}
               valor={pesos.cerca[c.clave] || 0}
               onChange={(v) => setPesos((p) => ({ ...p, cerca: { ...p.cerca, [c.clave]: v } }))}
@@ -157,15 +178,19 @@ export default function Buscador() {
       <section className="min-w-0 space-y-4">
         {error && <p className="text-sm text-red-700">No se pudo buscar: {error}</p>}
         {datos && !conGeo && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="flex gap-2 rounded-xl border border-sol-200 bg-sol-50 px-4 py-3 text-sm text-sol-900">
+            <Icono nombre="info-circle" className="mt-0.5 h-[18px] w-[18px] shrink-0 text-sol-600" />
+            <span>
             Todavía no hay datos de cercanía ni de sol para estos avisos: el ranking usa solo el precio. Se calculan con{' '}
-            <code className="rounded bg-amber-100 px-1">scripts/descargar_osm.py</code> y{' '}
-            <code className="rounded bg-amber-100 px-1">scripts/enriquecer_geo.py</code>.
+            <code className="rounded bg-sol-100 px-1">scripts/descargar_osm.py</code> y{' '}
+            <code className="rounded bg-sol-100 px-1">scripts/enriquecer_geo.py</code>.
+            </span>
           </p>
         )}
 
         {solDemo && (
-          <p className="text-xs text-stone-500">
+          <p className="flex gap-1.5 text-xs text-stone-500">
+            <Icono nombre="info-circle" className="h-4 w-4 shrink-0 text-stone-400" />
             Lugares cercanos: reales, de OpenStreetMap. Sol: calculado con el método real, pero sobre una ciudad de
             edificios ficticios, porque las coordenadas de la demo también lo son.
           </p>
@@ -185,7 +210,8 @@ export default function Buscador() {
         </p>
 
         {datos?.total === 0 && (
-          <div className="rounded-lg border border-dashed border-stone-300 px-6 py-12 text-center text-sm text-stone-600">
+          <div className="rounded-2xl border border-dashed border-arena-400 px-6 py-12 text-center text-sm text-stone-600">
+            <Icono nombre="home-smile" className="mx-auto mb-2 h-8 w-8 text-arena-400" />
             Nada con esos filtros. Prueba subir el presupuesto o sumar comunas.
           </div>
         )}
@@ -198,7 +224,7 @@ export default function Buscador() {
         {ranking.length > mostrar && (
           <button
             onClick={() => setMostrar((m) => m + POR_PAGINA)}
-            className="w-full rounded-md border border-stone-300 bg-white py-2 text-sm hover:bg-stone-100"
+            className="w-full rounded-xl border border-arena-400 bg-arena-50 py-2 text-sm text-stone-700 shadow-suave hover:bg-arena-200"
           >
             Ver {Math.min(POR_PAGINA, ranking.length - mostrar)} más
           </button>
@@ -208,19 +234,22 @@ export default function Buscador() {
   );
 }
 
-function Criterio({ etiqueta, valor, onChange, children }) {
+function Criterio({ etiqueta, icono, valor, onChange, children }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-stone-700">{etiqueta}</span>
-        <div role="radiogroup" aria-label={etiqueta} className="inline-flex rounded border border-stone-300 bg-white p-0.5 text-xs">
+        <span className="flex min-w-0 items-center gap-2 text-sm text-stone-700">
+          {icono && <Icono nombre={icono} className={`h-[18px] w-[18px] shrink-0 ${valor > 0 ? 'text-sol-600' : 'text-stone-400'}`} />}
+          {etiqueta}
+        </span>
+        <div role="radiogroup" aria-label={etiqueta} className="inline-flex shrink-0 rounded-lg border border-arena-400 bg-arena-100 p-0.5 text-xs">
           {IMPORTANCIA.map((o) => (
             <button
               key={o.valor}
               role="radio"
               aria-checked={valor === o.valor}
               onClick={() => onChange(o.valor)}
-              className={`rounded-sm px-2 py-0.5 ${valor === o.valor ? 'bg-teal-700 text-white' : 'text-stone-500 hover:bg-stone-100'}`}
+              className={`rounded-md px-2 py-0.5 ${valor === o.valor ? (o.valor === 0 ? 'bg-arena-50 text-stone-700 shadow-suave' : 'bg-sol-600 text-white shadow-suave') : 'text-stone-500 hover:text-stone-800'}`}
             >
               {o.etiqueta}
             </button>
@@ -237,12 +266,12 @@ const ETIQUETA_PISO = Object.fromEntries(PISOS.map((p) => [p.valor, p.etiqueta.t
 function explicar(clave, a, piso) {
   if (clave === 'precio') {
     const p = a.posicion?.vs_mediana_pct;
-    if (p == null) return { icono: Tag, texto: 'Sin referencia de precio en su comuna' };
-    return { icono: Tag, texto: p === 0 ? `Igual a la mediana de ${a.comuna}` : `${p > 0 ? '+' : '−'}${Math.abs(p)} % vs. la mediana de ${a.comuna}` };
+    if (p == null) return { icono: 'tag-price', texto: 'Sin referencia de precio en su comuna' };
+    return { icono: 'tag-price', texto: p === 0 ? `Igual a la mediana de ${a.comuna}` : `${p > 0 ? '+' : '−'}${Math.abs(p)} % vs. la mediana de ${a.comuna}` };
   }
   if (clave === 'sol') {
     const h = a[`sol_${piso}`];
-    if (h == null) return { icono: Sun, texto: 'Sin dato de sol' };
+    if (h == null) return { icono: 'sun', texto: 'Sin dato de sol' };
     const cal = a.sol_calidad;
     const nota =
       a.sol_fuente === 'demo'
@@ -250,13 +279,13 @@ function explicar(clave, a, piso) {
         : cal == null
           ? 'sin edificios mapeados cerca'
           : `${Math.round(cal * 100)} % de alturas conocidas`;
-    return { icono: Sun, texto: `${num(h, 1)} h de sol el 21 de junio (${ETIQUETA_PISO[piso]}) · ${nota}` };
+    return { icono: 'sun', texto: `${num(h, 1)} h de sol el 21 de junio (${ETIQUETA_PISO[piso]}) · ${nota}` };
   }
   const d = a[`dist_${clave}`];
   const etiqueta = CERCANIA.find((c) => c.clave === clave)?.etiqueta.toLowerCase();
-  if (d == null) return { icono: MapPin, texto: `Sin ${etiqueta} a menos de 5 km` };
+  if (d == null) return { icono: ICONO_CRITERIO[clave], texto: `Sin ${etiqueta} a menos de 5 km` };
   const nombre = a[`cerca_${clave}`];
-  return { icono: MapPin, texto: `A ${num(d)} m de ${nombre || etiqueta}` };
+  return { icono: ICONO_CRITERIO[clave], texto: `A ${num(d)} m de ${nombre || etiqueta}` };
 }
 
 function Resultado({ r, lugar, piso, activo, onClick }) {
@@ -267,12 +296,12 @@ function Resultado({ r, lugar, piso, activo, onClick }) {
     <li
       id={`r-${a.url}`}
       onClick={onClick}
-      className={`cursor-pointer rounded-lg border bg-white p-4 transition-colors ${activo ? 'border-amber-400 ring-1 ring-amber-300' : 'border-stone-200 hover:border-stone-300'}`}
+      className={`cursor-pointer rounded-2xl border bg-arena-50 p-4 shadow-suave transition-colors ${activo ? 'border-sol-400 ring-1 ring-sol-300' : 'border-arena-300 hover:border-arena-400'}`}
     >
       <div className="flex gap-4">
-        <div className="w-14 shrink-0 text-center">
-          <p className="num text-xs text-stone-400">#{lugar}</p>
-          {pct != null && <p className="num text-2xl font-semibold text-teal-800">{pct}</p>}
+        <div className="w-16 shrink-0 rounded-xl bg-arena-100 px-1 py-2 text-center ring-1 ring-inset ring-arena-300">
+          <p className="marca-num">#{String(lugar).padStart(2, '0')}</p>
+          {pct != null && <p className="num text-2xl font-semibold leading-tight text-sol-700">{pct}</p>}
           {pct != null && <p className="text-[10px] uppercase tracking-wide text-stone-400">calce</p>}
         </div>
         <div className="min-w-0 flex-1">
@@ -290,14 +319,14 @@ function Resultado({ r, lugar, piso, activo, onClick }) {
           {r.partes.length > 0 && (
             <ul className="mt-3 space-y-1.5">
               {r.partes.map((p) => {
-                const { icono: Icono, texto } = explicar(p.clave, a, piso);
+                const { icono, texto } = explicar(p.clave, a, piso);
                 return (
                   <li key={p.clave} className="flex items-center gap-2 text-xs text-stone-600">
-                    <Icono className="h-3.5 w-3.5 shrink-0 text-stone-400" aria-hidden />
+                    <Icono nombre={icono} className="h-4 w-4 shrink-0 text-sol-600/80" />
                     <span className="min-w-0 flex-1 truncate">{texto}</span>
-                    <span className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-stone-100" aria-hidden>
+                    <span className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-arena-200" aria-hidden>
                       <span
-                        className={`block h-full ${p.valor == null ? 'bg-stone-300' : 'bg-teal-600'}`}
+                        className={`block h-full ${p.valor == null ? 'bg-arena-400' : 'bg-sol-500'}`}
                         style={{ width: `${Math.round((p.valor ?? 0.5) * 100)}%` }}
                       />
                     </span>

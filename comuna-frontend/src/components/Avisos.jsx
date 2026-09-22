@@ -54,9 +54,9 @@ export default function Avisos() {
       {error && <p className="text-sm text-red-700">No se pudieron cargar los avisos: {error}</p>}
 
       {!cargando && !error && total === 0 && (
-        <div className="rounded-lg border border-dashed border-stone-300 px-6 py-14 text-center">
+        <div className="rounded-2xl border border-dashed border-arena-400 px-6 py-14 text-center">
           <p className="font-medium text-stone-700">No hay avisos con esos filtros.</p>
-          <button onClick={() => cambiarFiltros(VACIO)} className="mt-2 text-sm text-teal-700 underline">
+          <button onClick={() => cambiarFiltros(VACIO)} className="mt-2 text-sm text-sol-700 underline">
             Quitar filtros
           </button>
         </div>
@@ -73,7 +73,7 @@ export default function Avisos() {
           <button
             onClick={() => ir(pagina - 1)}
             disabled={pagina === 0}
-            className="rounded-md border border-stone-300 bg-white px-4 py-2 hover:bg-stone-100 disabled:opacity-40"
+            className="rounded-lg border border-arena-400 bg-arena-50 px-4 py-2 shadow-suave hover:bg-arena-200 disabled:opacity-40"
           >
             Anterior
           </button>
@@ -83,7 +83,7 @@ export default function Avisos() {
           <button
             onClick={() => ir(pagina + 1)}
             disabled={pagina + 1 >= paginas}
-            className="rounded-md border border-stone-300 bg-white px-4 py-2 hover:bg-stone-100 disabled:opacity-40"
+            className="rounded-lg border border-arena-400 bg-arena-50 px-4 py-2 shadow-suave hover:bg-arena-200 disabled:opacity-40"
           >
             Siguiente
           </button>

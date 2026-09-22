@@ -7,10 +7,10 @@ import { num } from '../api';
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/positron';
 
-// Del puntaje al color: gris (bajo) → teal oscuro (alto), en el mismo tono del sistema.
+// Del puntaje al color: gris (bajo) → ámbar oscuro (alto), en el mismo tono del sistema.
 function colorPuntaje(p) {
   const a = [214, 211, 209];
-  const b = [15, 84, 79];
+  const b = [196, 95, 20];
   const t = p ?? 0;
   return a.map((v, i) => Math.round(v + (b[i] - v) * t));
 }
@@ -89,5 +89,5 @@ export default function MapaBuscador({ resultados, lugares, categorias, seleccio
     });
   }, [resultados, lugares, categorias, seleccionado, onSeleccionar]);
 
-  return <div ref={cont} className="h-[380px] w-full rounded-lg border border-stone-200 bg-stone-100" />;
+  return <div ref={cont} className="h-[380px] w-full overflow-hidden rounded-2xl border border-arena-300 bg-arena-200 shadow-suave" />;
 }

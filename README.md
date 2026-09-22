@@ -145,6 +145,8 @@ npm run dev                                          # http://localhost:5173
 
 ## Con datos reales
 
+> **Para usarlo con datos actuales hace falta una integración legal con Mercado Libre** (ver [Sobre los datos](#sobre-los-datos)). Los pasos de abajo sirven para aprender y probar en local.
+
 Necesitas MongoDB corriendo en local (o una URI de Atlas).
 
 ```bash
@@ -227,15 +229,20 @@ python scripts/graficos.py         # gráficos de docs/img
 python scripts/capturas.py         # capturas del dashboard (necesita Playwright)
 ```
 
-## Sobre el scraping
+## Sobre los datos
 
-Es un proyecto de aprendizaje. El scraper pide una página por segundo, se identifica como `barrio-justo` y no guarda datos personales de quienes publican. Antes de usarlo, revisa los términos de uso de cada sitio: la mayoría de los portales no permiten la extracción automatizada, y los datos que junte son para uso personal, no para republicarlos.
+**La demo en vivo no usa datos reales de avisos.** Precios, superficies y coordenadas son ficticios; la cantidad de avisos por comuna viene del scraping de 2025, y los lugares cercanos (Biotren, colegios, salud, supermercados, parques) son reales, de OpenStreetMap. El sol se calcula con el método real, pero sobre edificios ficticios.
+
+**Para que funcione con datos actuales se necesita una fuente legal.** PortalInmobiliario es de Mercado Libre, y la vía correcta es su [API oficial](https://developers.mercadolibre.cl/): registrar una aplicación en su portal de desarrolladores, autenticarse con OAuth y respetar sus términos de uso y límites. Esa integración todavía no está hecha; el repositorio deja preparada la capa (`backend/scrapers/base.py` guarda en MongoDB con historial de precios) para enchufar un cliente de la API en vez del scraper.
+
+El scraper que trae el repositorio es un ejercicio de aprendizaje: pide una página por segundo, se identifica como `barrio-justo` y no guarda datos personales de quienes publican. La mayoría de los portales no permiten la extracción automatizada, así que no está pensado para publicar datos ni para uso comercial.
+
+Créditos: mapas, edificios y lugares © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright) (ODbL); mapa base de [OpenFreeMap](https://openfreemap.org); íconos [Solar](https://github.com/480-Design/Solar-Icon-Set) de 480 Design (CC BY 4.0).
 
 ## Lo que viene
 
-El plan completo, con lo que entra y lo que no, está en [`PRD-v3.md`](PRD-v3.md). Lo siguiente:
-
-- Mapa con los avisos (el scraper ya guarda latitud y longitud).
+- **Integración con la API de Mercado Libre** para tener datos actuales de forma legal.
+- Edificios reales de OpenStreetMap para el cálculo del sol (hoy la demo usa una ciudad ficticia).
 - Referencia por barrio en vez de por comuna: el centro de Concepción y Lomas de San Andrés no deberían compararse entre sí.
 - Un modelo de precio que explique *por qué* un aviso está caro, no solo *que* lo está.
 

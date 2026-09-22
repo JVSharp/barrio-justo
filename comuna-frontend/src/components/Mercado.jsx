@@ -59,7 +59,7 @@ export default function Mercado() {
 
       {grafico.length > 0 && (
         <section>
-          <h2 className="text-base font-semibold text-stone-900">UF por m² según comuna</h2>
+          <h2 className="text-base font-semibold text-stone-900"><span className="marca-num mr-2">01</span>UF por m² según comuna</h2>
           <p className="mb-4 text-sm text-stone-500">
             Mediana de {inmueble === 'casa' ? 'casas' : 'departamentos'} en {operacion}. Solo comunas con al
             menos {MUESTRA_MINIMA} avisos con superficie.
@@ -67,7 +67,7 @@ export default function Mercado() {
           <div style={{ height: Math.max(180, grafico.length * 34) }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={grafico} layout="vertical" margin={{ left: 8, right: 48 }}>
-                <CartesianGrid horizontal={false} stroke="#e7e5e4" />
+                <CartesianGrid horizontal={false} stroke="#E6DED1" />
                 <XAxis type="number" tick={{ fontSize: 12, fill: '#78716c' }} axisLine={false} tickLine={false} />
                 <YAxis
                   type="category"
@@ -78,7 +78,7 @@ export default function Mercado() {
                   tickLine={false}
                 />
                 <Tooltip
-                  cursor={{ fill: '#f5f5f4' }}
+                  cursor={{ fill: '#F1EBE1' }}
                   formatter={(v) => [uf(v, decM2), 'Mediana por m²']}
                   labelStyle={{ fontWeight: 600 }}
                 />
@@ -89,7 +89,7 @@ export default function Mercado() {
                   label={{ position: 'right', fontSize: 12, fill: '#57534e', formatter: (v) => num(v, decM2) }}
                 >
                   {grafico.map((f, i) => (
-                    <Cell key={f.comuna} fill={i === 0 ? '#0f766e' : '#5eaaa3'} />
+                    <Cell key={f.comuna} fill={i === 0 ? '#C45F14' : '#F7C48A'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -100,10 +100,10 @@ export default function Mercado() {
 
       {filas.length > 0 && (
         <section>
-          <h2 className="mb-3 text-base font-semibold text-stone-900">Detalle por comuna</h2>
-          <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+          <h2 className="mb-3 text-base font-semibold text-stone-900"><span className="marca-num mr-2">02</span>Detalle por comuna</h2>
+          <div className="overflow-x-auto rounded-2xl border border-arena-300 bg-arena-50 shadow-suave">
             <table className="num w-full text-sm">
-              <thead className="border-b border-stone-200 text-left text-xs uppercase tracking-wide text-stone-500">
+              <thead className="border-b border-arena-300 text-left text-xs uppercase tracking-wide text-stone-500">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Comuna</th>
                   <th className="px-4 py-2.5 text-right font-medium">Avisos</th>
@@ -140,15 +140,15 @@ export default function Mercado() {
 
       {renta?.filas?.length > 0 && (
         <section>
-          <h2 className="text-base font-semibold text-stone-900">Rentabilidad bruta estimada</h2>
+          <h2 className="text-base font-semibold text-stone-900"><span className="marca-num mr-2">03</span>Rentabilidad bruta estimada</h2>
           <p className="mb-3 max-w-3xl text-sm text-stone-500">
             Arriendo anual por m² dividido por el precio de venta por m², con las medianas de cada comuna. Es una
             estimación gruesa: no descuenta gastos comunes, contribuciones ni meses sin arrendatario, y compara
             avisos distintos. Solo aparecen comunas con al menos {renta.minimo_por_lado} avisos de cada lado.
           </p>
-          <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-arena-300 bg-arena-50 shadow-suave">
             <table className="num w-full text-sm">
-              <thead className="border-b border-stone-200 text-left text-xs uppercase tracking-wide text-stone-500">
+              <thead className="border-b border-arena-300 text-left text-xs uppercase tracking-wide text-stone-500">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Comuna</th>
                   <th className="px-4 py-2.5 font-medium">Tipo</th>
@@ -175,14 +175,14 @@ export default function Mercado() {
 
       {calidad?.excluidos > 0 && (
         <section className="max-w-2xl">
-          <h2 className="text-base font-semibold text-stone-900">Qué quedó fuera y por qué</h2>
+          <h2 className="text-base font-semibold text-stone-900"><span className="marca-num mr-2">04</span>Qué quedó fuera y por qué</h2>
           <p className="mb-3 text-sm text-stone-500">
             De {num(calidad.total)} avisos, {num(calidad.excluidos)} no entran a las estadísticas. No se borran:
             siguen visibles en la pestaña Avisos, marcados.
           </p>
           <ul className="num space-y-1.5 text-sm">
             {calidad.por_motivo.map((m) => (
-              <li key={m.motivo} className="flex justify-between gap-4 border-b border-dashed border-stone-200 pb-1.5">
+              <li key={m.motivo} className="flex justify-between gap-4 border-b border-dashed border-arena-300 pb-1.5">
                 <span>{m.descripcion}</span>
                 <span className="text-stone-500">{num(m.cantidad)}</span>
               </li>

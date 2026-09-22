@@ -90,3 +90,9 @@ transporte (solo distancia), sombra de cerros, alertas.
 - Bugs encontrados en el camino: índice 360 en `horizonte()`; `sol_fuente` leído como número; la demo en Pages servía `datos.json` en caché tras un deploy (ahora lleva marca de build).
 - Tests: 61 → 79 backend + 8 frontend.
 
+
+**2026-09-22 · rediseño v6 (visual)**
+
+- Sistema beige + un acento ámbar ("sol"), íconos Solar Duotone Bold offline (`scripts/iconos.mjs` → `src/iconos-solar.json`), sombras en capas, números de sección.
+- Diálogo "Sobre los datos": qué es real y qué es demo, y que para datos actuales hace falta una integración autorizada con la API de Mercado Libre (el scraper es solo de aprendizaje). Misma nota en el README.
+- Paletas de mapa, puntaje y gráficos pasadas de teal a ámbar; `lucide-react` eliminado.

@@ -15,7 +15,7 @@
     "@deck.gl/geo-layers": "~9.4.0",
     "@deck.gl/layers": "~9.4.0",
     "@deck.gl/mapbox": "~9.4.0",
-    "lucide-react": "^0.460.0",
+    "@iconify/react": "^5.2.1",
     "maplibre-gl": "^5.24.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@iconify-json/solar": "^1.2.12",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.15.0",

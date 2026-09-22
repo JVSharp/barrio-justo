@@ -1,5 +1,5 @@
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, ExternalLink } from 'lucide-react';
 import { clp, num, uf } from '../api';
+import Icono from './Icono';
 
 const esDemo = (url) => !url || url.includes('example.invalid');
 
@@ -15,9 +15,9 @@ const plural = (n, uno, varios) => `${n} ${Number(n) === 1 ? uno : varios}`;
 // Bajo el mercado es la buena noticia para quien busca: color de acento.
 // Sobre el mercado se marca, pero sin alarma (no es un error del aviso).
 const ESTILO_POSICION = {
-  bajo: 'bg-teal-50 text-teal-800 ring-teal-200',
-  en_rango: 'bg-stone-100 text-stone-600 ring-stone-200',
-  sobre: 'bg-amber-50 text-amber-800 ring-amber-200',
+  bajo: 'bg-sol-50 text-sol-800 ring-sol-200',
+  en_rango: 'bg-arena-200 text-stone-600 ring-arena-300',
+  sobre: 'bg-stone-100 text-stone-700 ring-stone-300',
 };
 
 function Posicion({ posicion, comuna }) {
@@ -43,9 +43,9 @@ function Historial({ dias, cambio }) {
     <p className="num mt-1.5 flex items-center gap-1 text-xs text-stone-500">
       {partes.join(' · ')}
       {cambio != null && (
-        <span className={`inline-flex items-center ${cambio < 0 ? 'text-teal-700' : 'text-amber-700'}`}>
+        <span className={`inline-flex items-center gap-0.5 ${cambio < 0 ? 'text-sol-700' : 'text-stone-600'}`}>
           {partes.length > 0 && <span className="mx-1 text-stone-300">·</span>}
-          {cambio < 0 ? <ArrowDownRight className="h-3 w-3" aria-hidden /> : <ArrowUpRight className="h-3 w-3" aria-hidden />}
+          <Icono nombre={cambio < 0 ? 'graph-down' : 'graph-up'} className="h-3.5 w-3.5" />
           {cambio < 0 ? 'bajó' : 'subió'} {num(Math.abs(cambio), 1)} %
         </span>
       )}
@@ -62,15 +62,15 @@ export default function TarjetaAviso({ aviso }) {
   const banos = aviso.banos ?? aviso['baños'];
   const arriendo = tipo_operacion === 'arriendo';
   const detalles = [
-    superficie_m2 && String(superficie_m2),
-    dormitorios && `${dormitorios} dorm.`,
-    banos && plural(banos, 'baño', 'baños'),
+    superficie_m2 && { icono: 'ruler-angular', texto: String(superficie_m2) },
+    dormitorios && { icono: 'bed', texto: `${dormitorios} dorm.` },
+    banos && { icono: 'bath', texto: plural(banos, 'baño', 'baños') },
   ].filter(Boolean);
 
   return (
     <article
-      className={`flex flex-col rounded-lg border bg-white p-4 ${
-        motivo_exclusion ? 'border-amber-300' : 'border-stone-200'
+      className={`flex flex-col rounded-2xl border bg-arena-50 p-4 shadow-suave ${
+        motivo_exclusion ? 'border-sol-300' : 'border-arena-300'
       }`}
     >
       <p className="text-xs text-stone-500">
@@ -87,14 +87,23 @@ export default function TarjetaAviso({ aviso }) {
         {uf_m2 != null && ` · ${num(uf_m2, arriendo ? 2 : 1)} UF/m²`}
       </p>
 
-      {detalles.length > 0 && <p className="mt-3 text-sm text-stone-600">{detalles.join(' · ')}</p>}
+      {detalles.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-600">
+          {detalles.map((d) => (
+            <li key={d.icono} className="inline-flex items-center gap-1">
+              <Icono nombre={d.icono} className="h-4 w-4 text-stone-400" />
+              {d.texto}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <Posicion posicion={posicion} comuna={comuna} />
       <Historial dias={dias_publicado} cambio={cambio_precio_pct} />
 
       {motivo_exclusion && (
-        <p className="mt-3 flex gap-1.5 text-xs text-amber-800">
-          <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
+        <p className="mt-3 flex gap-1.5 text-xs text-sol-800">
+          <Icono nombre="danger-triangle" className="h-4 w-4 shrink-0 text-sol-600" />
           Fuera del análisis: {motivo_exclusion.toLowerCase()}
         </p>
       )}
@@ -104,8 +113,8 @@ export default function TarjetaAviso({ aviso }) {
         {esDemo(url) ? (
           <span>aviso de demo</span>
         ) : (
-          <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-teal-700 hover:underline">
-            Ver aviso <ExternalLink className="h-3 w-3" aria-hidden />
+          <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-sol-700 hover:underline">
+            Ver aviso <Icono nombre="arrow-right-up" className="h-3.5 w-3.5" />
           </a>
         )}
       </div>

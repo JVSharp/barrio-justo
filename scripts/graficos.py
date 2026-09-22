@@ -29,7 +29,7 @@ import config  # noqa: E402
 import repositorio  # noqa: E402
 
 SALIDA = RAIZ / "docs" / "img"
-TEAL, TEAL_CLARO, GRIS, TEXTO = "#0f766e", "#99cfc9", "#a8a29e", "#292524"
+ACENTO, ACENTO_CLARO, GRIS, TEXTO = "#C45F14", "#F7C48A", "#D3C8B7", "#292524"
 MIN_MUESTRA = 10
 
 
@@ -43,7 +43,7 @@ with (RAIZ / "data" / "comunas_biobio.csv").open(encoding="utf-8") as _f:
     NOMBRES = {r["slug"]: r["nombre"] for r in csv.DictReader(_f)}
 
 plt.rcParams.update({
-    "font.family": "DejaVu Sans", "font.size": 10.5, "axes.edgecolor": "#d6d3d1",
+    "font.family": "DejaVu Sans", "axes.facecolor": "#FDFBF7", "figure.facecolor": "#FDFBF7", "font.size": 10.5, "axes.edgecolor": "#E6DED1",
     "axes.labelcolor": TEXTO, "xtick.color": "#57534e", "ytick.color": TEXTO,
     "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 100,
 })
@@ -73,8 +73,8 @@ def uf_m2_por_comuna(avisos: list[dict], origen: str) -> Path:
     )
     fig, ax = plt.subplots(figsize=(10, 0.46 * len(filas) + 1.6))
     y = range(len(filas))
-    ax.hlines(y, [f[2] for f in filas], [f[3] for f in filas], color=TEAL_CLARO, lw=7, zorder=1)
-    ax.scatter([f[1] for f in filas], y, color=TEAL, s=46, zorder=2)
+    ax.hlines(y, [f[2] for f in filas], [f[3] for f in filas], color=ACENTO_CLARO, lw=7, zorder=1)
+    ax.scatter([f[1] for f in filas], y, color=ACENTO, s=46, zorder=2)
     for i, f in enumerate(filas):
         ax.text(f[3] + 1, i, f"{fmt(f[1], 1)}  (n={f[4]})", va="center", fontsize=9.5, color="#44403c")
     ax.set_yticks(list(y), [f[0] for f in filas])
@@ -82,7 +82,7 @@ def uf_m2_por_comuna(avisos: list[dict], origen: str) -> Path:
     ax.set_title("Departamentos en venta: precio por m² según comuna", loc="left",
                  fontsize=13, fontweight="bold", color=TEXTO, pad=12)
     ax.set_xlim(left=0, right=max(f[3] for f in filas) * 1.22)
-    ax.grid(axis="x", color="#f0efed")
+    ax.grid(axis="x", color="#F1EBE1")
     pie(fig, origen)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     return guardar(fig, "uf-m2-por-comuna.png")
@@ -106,7 +106,7 @@ def promedio_vs_mediana(avisos: list[dict], origen: str) -> Path:
     x = range(len(comunas))
     w = 0.38
     ax.bar([i - w / 2 for i in x], [mean(crudo[c]) for c in comunas], w, color=GRIS, label="Promedio de los datos crudos")
-    ax.bar([i + w / 2 for i in x], [analisis.percentil(limpio[c], .5) for c in comunas], w, color=TEAL,
+    ax.bar([i + w / 2 for i in x], [analisis.percentil(limpio[c], .5) for c in comunas], w, color=ACENTO,
            label="Mediana después de limpiar")
     ax.set_xticks(list(x), comunas, rotation=20, ha="right")
     ax.set_ylabel("UF")
@@ -114,7 +114,7 @@ def promedio_vs_mediana(avisos: list[dict], origen: str) -> Path:
     ax.set_title("Casas en venta: promedio de datos crudos vs. mediana limpia", loc="left", fontsize=13,
                  fontweight="bold", color=TEXTO, pad=12)
     ax.legend(frameon=False, loc="upper right")
-    ax.grid(axis="y", color="#f0efed")
+    ax.grid(axis="y", color="#F1EBE1")
     ax.set_axisbelow(True)
     pie(fig, origen)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
@@ -129,13 +129,13 @@ def avisos_por_comuna_snapshot() -> Path:
             conteo[NOMBRES.get(slug(r["comuna"]), r["comuna"])] += int(r["cantidad"])
     filas = sorted(conteo.items(), key=lambda kv: kv[1])[-15:]
     fig, ax = plt.subplots(figsize=(10, 0.4 * len(filas) + 1.5))
-    ax.barh([c for c, _ in filas], [n for _, n in filas], color=TEAL, height=0.62)
+    ax.barh([c for c, _ in filas], [n for _, n in filas], color=ACENTO, height=0.62)
     for i, (_, n) in enumerate(filas):
         ax.text(n + 8, i, fmt(n), va="center", fontsize=9.5, color="#44403c")
     ax.set_title("Avisos capturados por comuna", loc="left", fontsize=13, fontweight="bold",
                  color=TEXTO, pad=12)
     ax.set_xlabel("avisos (venta y arriendo, casas y departamentos)")
-    ax.grid(axis="x", color="#f0efed")
+    ax.grid(axis="x", color="#F1EBE1")
     ax.set_axisbelow(True)
     pie(fig, "Fuente: scraping real de PortalInmobiliario, snapshot de 2025 (las 15 comunas con más avisos).")
     fig.tight_layout(rect=(0, 0.03, 1, 1))
@@ -145,7 +145,7 @@ def avisos_por_comuna_snapshot() -> Path:
 def guardar(fig, nombre: str) -> Path:
     SALIDA.mkdir(parents=True, exist_ok=True)
     p = SALIDA / nombre
-    fig.savefig(p, dpi=160, facecolor="white")
+    fig.savefig(p, dpi=160, facecolor="#FDFBF7")
     plt.close(fig)
     return p
 

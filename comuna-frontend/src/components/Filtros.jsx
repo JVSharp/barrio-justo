@@ -55,7 +55,7 @@ export default function Filtros({ filtros, onChange, comunas, vacio }) {
         </select>
       </Campo>
       {activos && (
-        <button onClick={() => onChange({ ...vacio, orden: filtros.orden })} className="pb-2 text-sm text-teal-700 underline">
+        <button onClick={() => onChange({ ...vacio, orden: filtros.orden })} className="pb-2 text-sm text-sol-700 underline">
           Limpiar
         </button>
       )}
@@ -64,7 +64,7 @@ export default function Filtros({ filtros, onChange, comunas, vacio }) {
 }
 
 const SELECT =
-  'mt-1 block w-full min-w-40 rounded-md border border-stone-300 bg-white px-3 py-2 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-teal-700';
+  'mt-1 block w-full min-w-40 rounded-lg border border-arena-400 bg-arena-50 px-3 py-2 text-sm focus:border-sol-600 focus:outline-none focus:ring-1 focus:ring-sol-600';
 
 function Campo({ etiqueta, children }) {
   return (

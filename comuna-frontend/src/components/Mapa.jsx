@@ -14,13 +14,13 @@ const TILES_OSM = 'https://tiles.openfreemap.org/planet';
 const VISTA_INICIAL = { center: [-73.06, -36.84], zoom: 11.3, pitch: 52, bearing: -18 };
 const ZOOM_EDIFICIOS = 13.5;
 
-// Escala secuencial de un solo tono (teal del sistema): claro = barato, oscuro = caro.
+// Escala secuencial de un solo tono (ámbar del sistema): claro = barato, oscuro = caro.
 const PALETA = [
-  [204, 235, 230],
-  [150, 207, 199],
-  [94, 170, 163],
-  [30, 128, 120],
-  [15, 84, 79],
+  [252, 229, 196],
+  [247, 196, 138],
+  [238, 145, 59],
+  [196, 95, 20],
+  [127, 60, 20],
 ];
 
 function cuantiles(valores, k) {
@@ -186,14 +186,14 @@ export default function Mapa() {
             type="checkbox"
             checked={sombras}
             onChange={(e) => activarSombras(e.target.checked)}
-            className="h-4 w-4 rounded border-stone-300 text-teal-700 focus:ring-teal-700"
+            className="h-4 w-4 rounded border-stone-300 text-sol-600 focus:ring-sol-600"
           />
           Sombras <span className="text-xs text-stone-400">(experimental)</span>
         </label>
       </div>
 
       {sombras && (
-        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm">
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-arena-300 bg-arena-50 px-4 py-3 text-sm shadow-suave">
           <label className="flex items-center gap-2 text-stone-600">
             Fecha
             <input
@@ -212,7 +212,7 @@ export default function Mapa() {
               step={0.25}
               value={hora}
               onChange={(e) => setHora(Number(e.target.value))}
-              className="w-full max-w-sm accent-teal-700"
+              className="w-full max-w-sm accent-sol-600"
               aria-valuetext={horaTxt}
             />
             <span className="num w-12 font-medium text-stone-900">{horaTxt}</span>
@@ -229,11 +229,11 @@ export default function Mapa() {
 
       {error && <p className="text-sm text-red-700">No se pudo cargar el mapa: {error}</p>}
 
-      <div className="relative overflow-hidden rounded-lg border border-stone-200">
+      <div className="relative overflow-hidden rounded-2xl border border-arena-300 shadow-suave">
         <div ref={contenedor} className="h-[620px] w-full bg-stone-100" />
 
         {cortes.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-white/95 px-3 py-2 text-xs shadow-sm ring-1 ring-stone-200">
+          <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg bg-arena-50/95 px-3 py-2 text-xs shadow-suave ring-1 ring-arena-300">
             <p className="mb-1.5 font-medium text-stone-700">Mediana UF/m² por celda</p>
             <div className="flex">
               {PALETA.map((c, i) => (
