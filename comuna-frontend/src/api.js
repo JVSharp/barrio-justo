@@ -7,7 +7,7 @@ export const ESTATICO = import.meta.env.VITE_MODO === 'estatico';
 
 let datosEstaticos;
 function cargarEstatico() {
-  datosEstaticos ??= fetch(`${import.meta.env.BASE_URL}demo/datos.json`).then((r) => {
+  datosEstaticos ??= fetch(`${import.meta.env.BASE_URL}demo/datos.json?v=${__BUILD__}`).then((r) => {
     if (!r.ok) throw new Error(`${r.status} al cargar la demo`);
     return r.json();
   });
