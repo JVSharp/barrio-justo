@@ -1,12 +1,13 @@
-from scrapers import PortalInmobiliarioScraper, YapoScraper
+"""
+Corre el scraper y guarda en MongoDB.
+
+    python scraper.py                          # las 33 comunas
+    python scraper.py concepcion talcahuano    # solo algunas (slugs)
+"""
+
+import sys
+
+from scrapers import PortalInmobiliarioScraper
 
 if __name__ == "__main__":
-    # Aquí se pueden instanciar y ejecutar múltiples scrapers
-    scrapers = [
-        PortalInmobiliarioScraper(),
-        YapoScraper(),
-    ]
-
-    for scraper in scrapers:
-        scraper.scrape()
-
+    PortalInmobiliarioScraper(comunas=sys.argv[1:] or None).scrape()

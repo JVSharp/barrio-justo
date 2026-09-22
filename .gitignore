@@ -1,61 +1,26 @@
 # Python
 venv/
+.venv/
 __pycache__/
 *.py[cod]
-*.sqlite3
-*.log
-*.env
+.pytest_cache/
+
+# Entorno (credenciales). Los .env.example sí se versionan.
+.env
 .env.*
-.DS_Store
+!.env.example
 
-# FastAPI / Uvicorn logs
-*.pid
-
-# VSCode settings
-.vscode/
-*.code-workspace
-
-# MacOS
-.DS_Store
-
-# MongoDB dump files
-dump/
-*.bson
-*.json
-
-# Node.js / React frontend
+# Node
 node_modules/
 dist/
-build/
-.npm/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# React/Vite/CRA
-.comuna-frontend/.env
-.comuna-frontend/.env.*
-
-# Logs
 *.log
 
-# CSVs temporales (si quieres ignorarlos, descomenta la siguiente línea)
-# *.csv
+# MongoDB dumps
+dump/
+*.bson
 
-# Otros archivos a ignorar
+# Editores y sistema
+.vscode/
 .idea/
-*.iml
-
-# Sistema
+.DS_Store
 Thumbs.db
-
-# Optional: JetBrains
-*.idea/
-
-# Optional: PyCharm
-*.idea/
-*.pyc
-
-# Optional: Local test data
-*.local
