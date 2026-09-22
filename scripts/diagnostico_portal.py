@@ -20,7 +20,7 @@ from scrapers.portalinmobiliario import PortalInmobiliarioScraper  # noqa: E402
 comuna, op, tipo = (sys.argv[1:] + ["concepcion", "venta", "departamento"][len(sys.argv[1:]):])[:3]
 s = object.__new__(PortalInmobiliarioScraper)
 url = s.url(op, tipo, comuna)
-r = requests.get(url, timeout=20, headers={"User-Agent": "comuna-dash/2.0 (proyecto educativo)",
+r = requests.get(url, timeout=20, headers={"User-Agent": "barrio-justo/2.0 (proyecto educativo)",
                                            "Accept": "application/json"})
 print("URL         ", url)
 print("HTTP        ", r.status_code, "→", r.url if r.url != url else "(sin redirección)")

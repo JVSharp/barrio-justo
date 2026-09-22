@@ -40,10 +40,25 @@ REF_UF_M2 = {
     "negrete": 20, "santa-barbara": 21,
 }
 ARRIENDO_TASA = 0.0045
+
+# Centro urbano aproximado de cada comuna (lat, lon) y dispersión en grados.
+# Las coordenadas de la demo son INVENTADAS alrededor de estos puntos: sirven
+# para ver el mapa, no para ubicar avisos reales.
+CENTROS = {
+    "concepcion": (-36.8240, -73.0480, .010), "san-pedro-de-la-paz": (-36.8490, -73.0900, .010),
+    "chiguayante": (-36.9200, -73.0180, .008), "talcahuano": (-36.7300, -73.1050, .008),
+    "hualpen": (-36.7900, -73.0880, .007), "coronel": (-37.0180, -73.1450, .008),
+    "lota": (-37.0900, -73.1500, .006), "penco": (-36.7420, -72.9930, .006),
+    "tome": (-36.6190, -72.9520, .006), "hualqui": (-36.9760, -72.9360, .005),
+    "florida": (-36.8230, -72.6620, .004), "santa-juana": (-37.1740, -72.9370, .004),
+    "los-angeles": (-37.4700, -72.3530, .012), "cabrero": (-37.0340, -72.4050, .004),
+    "arauco": (-37.2470, -73.3150, .005), "canete": (-37.8010, -73.3960, .005),
+    "negrete": (-37.5860, -72.5300, .003), "santa-barbara": (-37.6660, -72.0200, .003),
+}
 COLUMNAS = ["id_aviso", "fuente", "tipo_operacion", "tipo_inmueble", "titulo",
             "precio_uf", "precio_clp", "comuna", "provincia", "superficie_m2",
             "dormitorios", "banos", "url", "fecha_primera_vista", "fecha_ultima_vista",
-            "historial_precios"]
+            "historial_precios", "latitud", "longitud"]
 
 
 def slug(texto: str) -> str:
@@ -87,6 +102,15 @@ def main() -> None:
 
             primera = HOY - timedelta(days=rnd.randint(0, 120))
             ultima = min(HOY, primera + timedelta(days=rnd.randint(0, 60)))
+            clat, clon, disp = CENTROS.get(c["slug"], (None, None, 0))
+            # Los deptos se concentran más en el centro que las casas.
+            d = disp * (0.7 if tipo == "departamento" else 1.3)
+            lat = round(rnd.gauss(clat, d), 5) if clat else ""
+            lon = round(rnd.gauss(clon, d), 5) if clon else ""
+            # El precio sube hacia el centro: así el mapa muestra un gradiente.
+            if clat and precio and op in ("venta", "arriendo"):
+                dist = ((lat - clat) ** 2 + (lon - clon) ** 2) ** 0.5 / max(d, 1e-6)
+                precio = round(precio * (1.15 - 0.12 * min(dist, 2.5)), 1 if op == "arriendo" else 0)
             # ~15 % de los avisos cambió de precio desde que apareció (casi
             # siempre a la baja), para que se vea el historial en la demo.
             historial = f"{primera.isoformat()}:{precio}"
@@ -112,6 +136,8 @@ def main() -> None:
                 "fecha_primera_vista": primera.isoformat(),
                 "fecha_ultima_vista": ultima.isoformat(),
                 "historial_precios": historial,
+                "latitud": lat,
+                "longitud": lon,
             })
 
     # Un puñado de duplicados exactos (el mismo aviso visto dos veces).

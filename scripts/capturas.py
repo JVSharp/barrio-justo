@@ -33,7 +33,10 @@ CAPTURAS = [
     # archivo, hash de la vista, alto de la ventana
     ("dashboard-mercado.png", "mercado", 1500),
     ("dashboard-avisos.png", "avisos", 1100),
+    ("dashboard-mapa.png", "mapa", 900),
 ]
+# El mapa baja teselas de OpenFreeMap: necesita más tiempo que el resto.
+ESPERA_MS = {"mapa": 6000}
 
 
 def esperar(url: str, segundos: int = 60) -> None:
@@ -78,7 +81,7 @@ def main() -> None:
             for archivo, vista, alto in CAPTURAS:
                 pag = nav.new_page(viewport={"width": 1280, "height": alto}, device_scale_factor=2)
                 pag.goto(f"http://127.0.0.1:{WEB_PUERTO}/#{vista}", wait_until="networkidle")
-                pag.wait_for_timeout(800)
+                pag.wait_for_timeout(ESPERA_MS.get(vista, 800))
                 pag.screenshot(path=str(DESTINO / archivo))
                 pag.close()
                 print(f"  ✓ docs/img/{archivo}")

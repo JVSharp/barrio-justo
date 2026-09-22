@@ -60,13 +60,40 @@ class DemoRepositorio:
             )
         with path.open(encoding="utf-8") as f:
             self._avisos = [self._tipar(r) for r in csv.DictReader(f)]
+        # Métricas geográficas (scripts/enriquecer_geo.py), si ya se calcularon.
+        geo_path = path.with_name("geo.csv")
+        if geo_path.exists():
+            with geo_path.open(encoding="utf-8") as f:
+                extra = {r["url"]: self._tipar_geo(r) for r in csv.DictReader(f)}
+            for a in self._avisos:
+                a.update(extra.get(a.get("url"), {}))
 
     @staticmethod
     def _tipar(fila: dict[str, str]) -> dict[str, Any]:
         a: dict[str, Any] = dict(fila)
         for c in CAMPOS_NUMERICOS:
             a[c] = numero(a.get(c))
+        for c in ("latitud", "longitud"):        # numero() descarta el signo: acá no sirve
+            try:
+                a[c] = float(a[c]) if a.get(c) not in (None, "") else None
+            except ValueError:
+                a[c] = None
         return a
+
+    @staticmethod
+    def _tipar_geo(fila: dict[str, str]) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        for k, v in fila.items():
+            if k == "url":
+                continue
+            if k.startswith(("dist_", "sol_")):
+                try:
+                    out[k] = float(v) if v not in ("", None) else None
+                except ValueError:
+                    out[k] = None
+            else:
+                out[k] = v or None
+        return out
 
     def todos(self, filtro: dict[str, str]) -> list[dict]:
         return [a for a in self._avisos if all(a.get(k) == v for k, v in filtro.items())]

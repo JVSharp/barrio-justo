@@ -298,3 +298,58 @@ def enriquecer(aviso: dict, refs: dict[Clave, dict[str, float]]) -> dict[str, An
         "posicion": posicion(aviso, refs),
         **historial(aviso),
     }
+
+
+# ---------------------------------------------------------------------------
+# v4 · Mapa: celdas de ~500 m con la mediana de UF/m²
+# ---------------------------------------------------------------------------
+
+TAMANO_CELDA = 0.005      # grados (~550 m × 450 m a la latitud de Concepción)
+MIN_CELDA = 3             # una celda con 1-2 avisos no es "el precio de la zona"
+# Caja generosa alrededor de la Región del Biobío: coordenadas fuera de esto
+# son errores de geocodificación del portal, no avisos en otra parte.
+CAJA_BIOBIO = (-38.6, -36.3, -74.0, -71.0)   # lat mín, lat máx, lon mín, lon máx
+
+
+def coordenada(v: Any) -> float | None:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def celdas(avisos: Iterable[dict], tamano: float = TAMANO_CELDA, minimo: int = MIN_CELDA) -> dict[str, Any]:
+    """Agrupa los avisos válidos con coordenadas y superficie en una grilla
+    lat/lon, y devuelve una fila por celda con su mediana de UF/m²."""
+    import math
+
+    validos, _ = limpiar(avisos)
+    lat_min, lat_max, lon_min, lon_max = CAJA_BIOBIO
+    grupos: dict[tuple[int, int], list[tuple[float, str]]] = defaultdict(list)
+    con_coord = 0
+    for a in validos:
+        lat, lon, v = coordenada(a.get("latitud")), coordenada(a.get("longitud")), uf_m2(a)
+        if lat is None or lon is None or not (lat_min <= lat <= lat_max and lon_min <= lon <= lon_max):
+            continue
+        con_coord += 1
+        if v:
+            grupos[(math.floor(lat / tamano), math.floor(lon / tamano))].append((v, a.get("comuna") or ""))
+
+    filas = []
+    for (i, j), vals in grupos.items():
+        if len(vals) < minimo:
+            continue
+        precios = [v for v, _ in vals]
+        comunas = [c for _, c in vals]
+        filas.append({
+            "lat": round((i + 0.5) * tamano, 5),
+            "lon": round((j + 0.5) * tamano, 5),
+            "n": len(vals),
+            "mediana_uf_m2": round(percentil(precios, .5), 2),
+            "p25_uf_m2": round(percentil(precios, .25), 2),
+            "p75_uf_m2": round(percentil(precios, .75), 2),
+            "comuna": max(set(comunas), key=comunas.count),
+        })
+    filas.sort(key=lambda f: -f["n"])
+    return {"tamano_grados": tamano, "minimo_por_celda": minimo,
+            "avisos_validos": len(validos), "avisos_con_coordenadas": con_coord, "celdas": filas}

@@ -27,7 +27,13 @@ SALIDA = RAIZ / "comuna-frontend" / "public" / "demo" / "datos.json"
 # Solo lo que usa el frontend; el resto del aviso no viaja.
 CAMPOS = ("titulo", "comuna", "tipo_operacion", "tipo_inmueble", "precio_uf", "precio_clp",
           "superficie_m2", "dormitorios", "banos", "url", "uf_m2", "motivo_exclusion",
-          "fecha_ultima_vista", "posicion", "dias_publicado", "cambio_precio_pct")
+          "fecha_ultima_vista", "posicion", "dias_publicado", "cambio_precio_pct",
+          "latitud", "longitud")
+
+
+def campos(a: dict) -> dict:
+    """Campos base + métricas de cercanía y sol, si existen."""
+    return {k: v for k, v in a.items() if k in CAMPOS or k.startswith(("dist_", "cerca_", "sol_"))}
 
 
 def main_() -> None:
@@ -51,8 +57,13 @@ def main_() -> None:
             f"{op}|{tipo}": main.resumen(repo, tipo_operacion=op, tipo_inmueble=tipo)
             for op in ("venta", "arriendo") for tipo in ("departamento", "casa")
         },
+        "mapa": {
+            f"{op}|{tipo}": main.mapa(repo, tipo_operacion=op, tipo_inmueble=tipo)
+            for op in ("venta", "arriendo") for tipo in ("departamento", "casa")
+        },
         # En el orden del repositorio (el mismo que usa la API antes de ordenar).
-        "avisos": [{k: a.get(k) for k in CAMPOS} for a in enriquecidos],
+        "avisos": [campos(a) for a in enriquecidos],
+        "lugares": main.lugares(),
     }
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
     SALIDA.write_text(json.dumps(datos, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

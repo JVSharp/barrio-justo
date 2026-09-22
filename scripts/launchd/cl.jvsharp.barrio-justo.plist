@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Corre scripts/actualizar.sh los domingos a las 04:00.
+     Instalar:   cp scripts/launchd/cl.jvsharp.barrio-justo.plist ~/Library/LaunchAgents/
+                 launchctl load ~/Library/LaunchAgents/cl.jvsharp.barrio-justo.plist
+     Quitar:     launchctl unload ~/Library/LaunchAgents/cl.jvsharp.barrio-justo.plist
+     Ajusta RUTA_DEL_REPO antes de instalar. MongoDB tiene que estar corriendo. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>cl.jvsharp.barrio-justo</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>RUTA_DEL_REPO/scripts/actualizar.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>4</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key><string>RUTA_DEL_REPO/data/actualizar.log</string>
+  <key>StandardErrorPath</key><string>RUTA_DEL_REPO/data/actualizar.log</string>
+</dict>
+</plist>

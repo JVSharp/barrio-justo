@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { api, ESTATICO } from './api';
 import Mercado from './components/Mercado';
 import Avisos from './components/Avisos';
 
+// El mapa trae MapLibre y deck.gl (~1 MB): solo se descarga al abrir su pestaña.
+const Mapa = lazy(() => import('./components/Mapa'));
+const Buscador = lazy(() => import('./components/Buscador'));
+
 const VISTAS = [
+  { id: 'buscador', etiqueta: 'Buscador' },
   { id: 'mercado', etiqueta: 'Mercado por comuna' },
+  { id: 'mapa', etiqueta: 'Mapa 3D' },
   { id: 'avisos', etiqueta: 'Avisos' },
 ];
 
 function vistaInicial() {
   const h = window.location.hash.replace('#', '');
-  return VISTAS.some((v) => v.id === h) ? h : 'mercado';
+  return VISTAS.some((v) => v.id === h) ? h : 'buscador';
 }
 
 export default function App() {
@@ -32,8 +38,8 @@ export default function App() {
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-5 pt-6">
           <div className="pb-4">
-            <h1 className="text-xl font-semibold tracking-tight text-stone-900">Comuna Dash</h1>
-            <p className="text-sm text-stone-500">Precios de casas y departamentos en la Región del Biobío</p>
+            <h1 className="text-xl font-semibold tracking-tight text-stone-900">Barrio Justo</h1>
+            <p className="text-sm text-stone-500">Dónde vivir en el Biobío: a precio justo, cerca de lo que importa y con sol</p>
           </div>
           <nav className="flex gap-6 text-sm" aria-label="Vistas">
             {VISTAS.map((v) => (
@@ -74,8 +80,16 @@ export default function App() {
               <code className="rounded bg-red-100 px-1">backend/</code> y recarga.
             </p>
           </div>
+        ) : vista === 'buscador' ? (
+          <Suspense fallback={<p className="text-sm text-stone-500">Cargando el buscador…</p>}>
+            <Buscador />
+          </Suspense>
         ) : vista === 'mercado' ? (
           <Mercado />
+        ) : vista === 'mapa' ? (
+          <Suspense fallback={<p className="text-sm text-stone-500">Cargando el mapa…</p>}>
+            <Mapa />
+          </Suspense>
         ) : (
           <Avisos />
         )}
@@ -85,7 +99,7 @@ export default function App() {
         {salud && `${salud.avisos.toLocaleString('es-CL')} avisos · fuente: ${salud.fuente}`}
         {ESTATICO && ' · versión estática, sin backend · '}
         {ESTATICO && (
-          <a href="https://github.com/JVSharp/comuna-dash" className="underline hover:text-stone-600">
+          <a href="https://github.com/JVSharp/barrio-justo" className="underline hover:text-stone-600">
             código en GitHub
           </a>
         )}

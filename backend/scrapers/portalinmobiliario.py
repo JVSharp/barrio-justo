@@ -43,7 +43,7 @@ class PortalInmobiliarioScraper(BaseScraper):
         todas = comunas_mod.cargar()
         self.comunas = [c for c in todas if not comunas or c.slug in comunas]
         self.http = requests.Session()
-        self.http.headers.update({"User-Agent": "comuna-dash/2.0 (proyecto educativo)",
+        self.http.headers.update({"User-Agent": "barrio-justo/2.0 (proyecto educativo)",
                                   "Accept": "application/json"})
 
     def valor_uf(self) -> float | None:

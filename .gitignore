@@ -27,3 +27,9 @@ Thumbs.db
 
 # Generado por scripts/exportar_estatico.py (lo arma el workflow de Pages)
 comuna-frontend/public/demo/
+
+# Edificios de OSM: pesado y regenerable (scripts/descargar_osm.py)
+data/osm/edificios.json
+data/actualizar.log
+data/osm/teselas/
+data/demo/edificios_demo.json

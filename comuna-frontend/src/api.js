@@ -33,6 +33,24 @@ export function responderEstatico(d, ruta, p) {
     case '/calidad':
     case '/rentabilidad':
       return d[ruta.slice(1)];
+    case '/lugares':
+      return d.lugares;
+    case '/buscador': {
+      // Mismos filtros duros que main.filtrar_buscador.
+      const comunas = new Set((p.comunas || '').split(',').map((c) => c.trim()).filter(Boolean));
+      const items = d.avisos.filter(
+        (a) =>
+          !a.motivo_exclusion &&
+          a.tipo_operacion === (p.tipo_operacion || 'venta') &&
+          (!p.tipo_inmueble || a.tipo_inmueble === p.tipo_inmueble) &&
+          (!p.presupuesto_max_uf || (a.precio_uf && a.precio_uf <= Number(p.presupuesto_max_uf))) &&
+          (!p.dormitorios_min || (Number(a.dormitorios) || 0) >= Number(p.dormitorios_min)) &&
+          (!comunas.size || comunas.has(a.comuna)),
+      );
+      return { total: items.length, items };
+    }
+    case '/mapa':
+      return d.mapa[`${p.tipo_operacion || 'venta'}|${p.tipo_inmueble || 'departamento'}`];
     case '/resumen':
       return d.resumen[`${p.tipo_operacion || 'venta'}|${p.tipo_inmueble || 'departamento'}`];
     case '/propiedades': {

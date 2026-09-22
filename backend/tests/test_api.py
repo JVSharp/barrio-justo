@@ -88,3 +88,22 @@ def test_filtro_por_posicion(cliente):
 def test_rentabilidad_endpoint(cliente):
     r = cliente.get("/rentabilidad").json()
     assert r["minimo_por_lado"] == 10 and r["filas"] == []     # muestra chica: no inventa
+
+
+def test_mapa_endpoint(cliente):
+    r = cliente.get("/mapa").json()
+    assert r["minimo_por_celda"] == 3 and r["celdas"] == []    # fixture sin coordenadas
+    assert cliente.get("/mapa", params={"tipo_inmueble": "loft"}).status_code == 422
+
+
+def test_buscador_aplica_filtros_duros(cliente):
+    r = cliente.get("/buscador", params={"tipo_operacion": "venta", "presupuesto_max_uf": 4000}).json()
+    assert [i["url"] for i in r["items"]] == ["a"]            # b (5500) sobre presupuesto, c excluido
+    assert "motivo_exclusion" not in r["items"][0]
+    r = cliente.get("/buscador", params={"tipo_operacion": "arriendo", "comunas": "Penco"}).json()
+    assert [i["url"] for i in r["items"]] == ["d"]            # e es venta mal clasificada
+
+
+def test_buscador_valida(cliente):
+    assert cliente.get("/buscador", params={"presupuesto_max_uf": -1}).status_code == 422
+    assert cliente.get("/buscador", params={"dormitorios_min": 99}).status_code == 422

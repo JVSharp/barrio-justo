@@ -36,7 +36,7 @@ jobs:
         working-directory: comuna-frontend
         env:
           VITE_MODO: estatico
-          VITE_BASE: /comuna-dash/
+          VITE_BASE: /barrio-justo/
         run: npm ci && npm run build
       - uses: actions/upload-pages-artifact@v4
         with:

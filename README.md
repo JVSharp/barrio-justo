@@ -1,19 +1,19 @@
 <div align="center">
 
-# Comuna Dash
+# Barrio Justo
 
-**¿Cuánto cuesta el metro cuadrado en cada comuna del Biobío? ¿Y este aviso, está caro?**
+**Dónde vivir en el Biobío: a precio justo, cerca de lo que te importa y con sol en invierno.**
 
-Scraper de avisos inmobiliarios + API + dashboard, con un análisis que no se deja engañar por los avisos mal cargados.
+Buscador de casas y departamentos que ordena los avisos según tu presupuesto, lo que quieres tener cerca y cuántas horas de sol reciben el día más corto del año. Detrás: scraper, API y un análisis de precios que no se deja engañar por los avisos mal cargados.
 
-**[→ Ver la demo en vivo](https://jvsharp.github.io/comuna-dash/)** · sin instalar nada, con datos de demostración
+**[→ Ver la demo en vivo](https://jvsharp.github.io/barrio-justo/)** · sin instalar nada, con datos de demostración
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![MongoDB](https://img.shields.io/badge/MongoDB-opcional-47A248?style=flat-square&logo=mongodb&logoColor=white)
-[![CI](https://github.com/JVSharp/comuna-dash/actions/workflows/ci.yml/badge.svg)](https://github.com/JVSharp/comuna-dash/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-55-15803D?style=flat-square)
+[![CI](https://github.com/JVSharp/barrio-justo/actions/workflows/ci.yml/badge.svg)](https://github.com/JVSharp/barrio-justo/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-86-15803D?style=flat-square)
 
 <img src="docs/img/dashboard-mercado.png" alt="Vista de mercado: mediana de UF por m² por comuna" width="860">
 
@@ -41,6 +41,33 @@ Así que ahora el análisis hace tres cosas:
 
 Las reglas están todas en [`backend/analisis.py`](backend/analisis.py), con sus tests.
 
+## Buscador: lo que tú buscas, ordenado por calce
+
+La pestaña **Buscador** parte de la persona y no del mercado. Indicas si compras o arriendas, el tipo, tu presupuesto, dormitorios y comunas (esos son filtros duros), y después **qué te importa**, con tres niveles (no, algo, mucho):
+
+- **Precio bajo el mercado**: cuánto se aleja el aviso de la mediana de UF/m² de su comuna.
+- **Sol en invierno**: horas de sol directo el 21 de junio, el día más corto del año, mirando desde la calle o desde un 3°, 6° o 10° piso.
+- **Cerca de**: Biotren o terminal, universidad, colegio, hospital o clínica, supermercado, parque.
+
+El resultado es un ranking con explicación: cada aviso muestra su **porcentaje de calce** y el aporte de cada criterio ("a 350 m de Estación Concepción", "4,5 h de sol el 21 de junio desde un 6° piso", "−9 % vs. la mediana"). Los pesos se mueven y el ranking se reordena al instante, porque el puntaje se calcula en el navegador ([`src/puntaje.js`](comuna-frontend/src/puntaje.js), con tests).
+
+### Cómo se calcula el sol
+
+1. Posición del sol cada 10 minutos del 21 de junio, con las ecuaciones de la NOAA ([`backend/sol.py`](backend/sol.py)). Los tests la contrastan con valores conocidos: el sol culmina al norte a ~29,7° en Concepción.
+2. Para cada aviso se arma el "horizonte" de edificios en 150 m, con footprints y alturas de OpenStreetMap: para cada grado de azimut, el ángulo que tapa el edificio más alto.
+3. Hay sol cuando el sol está sobre ese horizonte. Se repite a la altura de la calle y de los pisos 3, 6 y 10.
+
+Lo que **no** mide: la orientación de las ventanas, árboles ni cerros (el Caracol le quita sol de mañana a parte del centro). Cada valor trae la calidad del dato: qué porcentaje de los edificios cercanos tiene altura conocida en OSM; el resto se asume de 2 pisos.
+
+### Datos de OpenStreetMap
+
+```bash
+python scripts/descargar_osm.py     # lugares y edificios (~10 min, una vez)
+python scripts/enriquecer_geo.py    # distancias y horas de sol por aviso
+```
+
+Lugares y edificios © colaboradores de OpenStreetMap, [ODbL](https://www.openstreetmap.org/copyright).
+
 ## ¿Este aviso está caro?
 
 Cada aviso se compara con los de su misma comuna, operación y tipo. Si su UF/m² cae bajo el cuartil inferior, queda como **bajo el mercado**; sobre el superior, **sobre el mercado**; entremedio, **en rango**. Además muestra cuánto se aleja de la mediana (por ejemplo, "−12 % vs. la mediana de Concepción").
@@ -63,6 +90,18 @@ rentabilidad bruta ≈ (arriendo UF/m² al mes × 12) / venta UF/m²
 
 Es una cifra gruesa (no descuenta gastos, contribuciones ni meses vacíos, y compara avisos distintos), pero sirve para ver de un vistazo en qué comunas arrendar rinde más respecto de lo que cuesta comprar.
 
+## Mapa 3D
+
+La comuna es una unidad demasiado gruesa: el centro de Concepción y Lomas de San Andrés no cuestan lo mismo por m². La pestaña **Mapa 3D** divide la ciudad en celdas de ~500 m. Cada celda es una columna hexagonal: la **altura** es cuántos avisos tiene y el **color**, su mediana de UF/m². Las celdas con menos de 3 avisos no se dibujan.
+
+La agregación se hace en el backend (`analisis.celdas()`, con la misma mediana del resto del proyecto); el navegador solo dibuja, con MapLibre y deck.gl sobre mapas de OpenFreeMap.
+
+<img src="docs/img/dashboard-mapa.png" alt="Mapa 3D: columnas hexagonales por celda de ~500 m" width="860">
+
+**Sombras (experimental).** Al activarlas aparecen los edificios de OpenStreetMap en 3D con la sombra del sol para la fecha y hora que elijas. Es ilustrativo: las alturas de OSM están incompletas y los avisos no dicen en qué piso ni hacia dónde miran las ventanas, así que el proyecto **no** asigna un puntaje de asoleamiento por aviso.
+
+> En la demo, las coordenadas de los avisos son inventadas alrededor del centro de cada comuna. El scraper guarda las reales.
+
 ## Cómo se ve
 
 <table>
@@ -82,15 +121,15 @@ Y este es con datos reales, del scraping que hice en 2025:
 
 ## Probarlo
 
-La forma más rápida es la **[demo en vivo](https://jvsharp.github.io/comuna-dash/)**: es el mismo dashboard, compilado en modo estático y publicado en GitHub Pages. No tiene backend; los datos se exportan con las mismas funciones de la API (`scripts/exportar_estatico.py`), así que muestra exactamente las mismas cifras.
+La forma más rápida es la **[demo en vivo](https://jvsharp.github.io/barrio-justo/)**: es el mismo dashboard, compilado en modo estático y publicado en GitHub Pages. No tiene backend; los datos se exportan con las mismas funciones de la API (`scripts/exportar_estatico.py`), así que muestra exactamente las mismas cifras.
 
 ### En tu máquina, sin MongoDB
 
 El repo trae un set de avisos de demo, así que no necesitas instalar nada más que Python y Node.
 
 ```bash
-git clone https://github.com/JVSharp/comuna-dash.git
-cd comuna-dash
+git clone https://github.com/JVSharp/barrio-justo.git
+cd barrio-justo
 
 # API
 cd backend
@@ -118,6 +157,16 @@ uvicorn main:app --reload
 
 Cada aviso se guarda una vez por URL. Si vuelves a correr el scraper se actualiza el precio y la fecha en que se vio por última vez, y se conserva la fecha en que apareció. Con eso queda la base lista para medir cuánto dura publicado un aviso o cómo cambia su precio.
 
+## Datos al día
+
+`scripts/actualizar.sh` corre el scraper y calcula cercanía y sol de los avisos nuevos. Para que corra solo los domingos a las 04:00 en tu Mac:
+
+```bash
+# edita RUTA_DEL_REPO en el archivo y luego:
+cp scripts/launchd/cl.jvsharp.barrio-justo.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/cl.jvsharp.barrio-justo.plist
+```
+
 ## API
 
 | Ruta | Qué devuelve |
@@ -127,6 +176,9 @@ Cada aviso se guarda una vez por URL. Si vuelves a correr el scraper se actualiz
 | `GET /resumen/{comuna}` | Todas las combinaciones de una comuna. |
 | `GET /calidad` | Cuántos avisos quedaron fuera del análisis y por qué. |
 | `GET /rentabilidad` | Rentabilidad bruta estimada por comuna y tipo. |
+| `GET /buscador` | Candidatos que cumplen presupuesto, tipo, dormitorios y comunas, con sus métricas de precio, cercanía y sol. |
+| `GET /lugares` | Lugares de interés de OpenStreetMap por categoría. |
+| `GET /mapa` | Celdas de ~500 m con mediana de UF/m² y cantidad de avisos. |
 | `GET /comunas` · `/tipos_inmueble` · `/tipos_operacion` | Valores para los filtros. |
 | `GET /salud` | Qué fuente de datos está usando (demo o mongo). |
 
@@ -177,7 +229,7 @@ python scripts/capturas.py         # capturas del dashboard (necesita Playwright
 
 ## Sobre el scraping
 
-Es un proyecto de aprendizaje. El scraper pide una página por segundo, se identifica como `comuna-dash` y no guarda datos personales de quienes publican. Antes de usarlo, revisa los términos de uso de cada sitio: la mayoría de los portales no permiten la extracción automatizada, y los datos que junte son para uso personal, no para republicarlos.
+Es un proyecto de aprendizaje. El scraper pide una página por segundo, se identifica como `barrio-justo` y no guarda datos personales de quienes publican. Antes de usarlo, revisa los términos de uso de cada sitio: la mayoría de los portales no permiten la extracción automatizada, y los datos que junte son para uso personal, no para republicarlos.
 
 ## Lo que viene
 
