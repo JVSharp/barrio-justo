@@ -10,6 +10,7 @@ def aviso(uf, op="venta", m2="80 m²", url=None, **extra):
 
 @pytest.mark.parametrize("entrada, esperado", [
     ("120 m²", 120.0), ("45,5 m2", 45.5), (3, 3.0), ("", None), (None, None), ("n/a", None),
+    ("1.200 m² totales", 1200.0), ("12.5", 12.5), ("65 m² útiles", 65.0),
 ])
 def test_numero(entrada, esperado):
     assert a.numero(entrada) == esperado
@@ -24,6 +25,8 @@ def test_numero(entrada, esperado):
     (aviso(1, op="arriendo"), "arriendo_bajo"),
     (aviso(3_500), None),
     (aviso(15, op="arriendo"), None),
+    (aviso(3_500, es_proyecto=True), "proyecto"),
+    (aviso(3_500, es_proyecto="False"), None),
 ])
 def test_motivo_exclusion(av, motivo):
     assert a.motivo_exclusion(av) == motivo

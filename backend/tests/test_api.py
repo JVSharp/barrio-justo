@@ -69,3 +69,22 @@ def test_calidad(cliente):
     c = cliente.get("/calidad").json()
     assert c["total"] == 5 and c["excluidos"] == 2
     assert {m["motivo"] for m in c["por_motivo"]} == {"venta_baja", "arriendo_alto"}
+
+
+def test_propiedades_trae_posicion_e_historial(cliente):
+    item = cliente.get("/propiedades", params={"comuna": "Lota"}).json()["items"][0]
+    assert {"posicion", "dias_publicado", "cambio_precio_pct"} <= item.keys()
+    # 2 avisos válidos con m² en Lota: bajo el mínimo de 10 → sin referencia
+    assert item["posicion"]["codigo"] == "sin_referencia"
+
+
+def test_filtro_por_posicion(cliente):
+    r = cliente.get("/propiedades", params={"posicion": "sin_referencia"}).json()
+    assert r["total"] == 5
+    assert cliente.get("/propiedades", params={"posicion": "bajo"}).json()["total"] == 0
+    assert cliente.get("/propiedades", params={"posicion": "otra"}).status_code == 422
+
+
+def test_rentabilidad_endpoint(cliente):
+    r = cliente.get("/rentabilidad").json()
+    assert r["minimo_por_lado"] == 10 and r["filas"] == []     # muestra chica: no inventa

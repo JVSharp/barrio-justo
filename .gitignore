@@ -24,3 +24,6 @@ dump/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Generado por scripts/exportar_estatico.py (lo arma el workflow de Pages)
+comuna-frontend/public/demo/

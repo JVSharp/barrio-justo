@@ -17,7 +17,7 @@ from typing import Any, Protocol
 from analisis import numero, superficie
 
 CAMPOS_NUMERICOS = ("precio_uf", "precio_clp")
-ORDENES = ("reciente", "precio_asc", "precio_desc", "uf_m2_asc")
+ORDENES = ("reciente", "precio_asc", "precio_desc", "uf_m2_asc", "vs_mediana_asc")
 
 
 class Repositorio(Protocol):
@@ -29,6 +29,8 @@ class Repositorio(Protocol):
 
 
 def _uf_m2(a: dict) -> float:
+    if "uf_m2" in a:                      # aviso ya enriquecido: mismo valor que ve el frontend
+        return a["uf_m2"] if a["uf_m2"] is not None else float("inf")
     m2, uf = superficie(a), numero(a.get("precio_uf"))
     return uf / m2 if (m2 and uf) else float("inf")
 
@@ -40,6 +42,11 @@ def ordenar(avisos: list[dict], orden: str) -> list[dict]:
         return sorted(avisos, key=lambda a: -(numero(a.get("precio_uf")) or 0))
     if orden == "uf_m2_asc":
         return sorted(avisos, key=_uf_m2)
+    if orden == "vs_mediana_asc":            # las "mejores oportunidades" primero
+        def vs(a):
+            p = (a.get("posicion") or {}).get("vs_mediana_pct")
+            return p if p is not None else float("inf")
+        return sorted(avisos, key=vs)
     return sorted(avisos, key=lambda a: a.get("fecha_ultima_vista") or "", reverse=True)
 
 

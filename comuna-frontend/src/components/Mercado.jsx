@@ -10,6 +10,7 @@ export default function Mercado() {
   const [inmueble, setInmueble] = useState('departamento');
   const [datos, setDatos] = useState(null);
   const [calidad, setCalidad] = useState(null);
+  const [renta, setRenta] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function Mercado() {
 
   useEffect(() => {
     api('/calidad').then(setCalidad).catch(() => {});
+    api('/rentabilidad').then(setRenta).catch(() => {});
   }, []);
 
   const decimales = operacion === 'arriendo' ? 1 : 0;
@@ -130,6 +132,41 @@ export default function Mercado() {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {renta?.filas?.length > 0 && (
+        <section>
+          <h2 className="text-base font-semibold text-stone-900">Rentabilidad bruta estimada</h2>
+          <p className="mb-3 max-w-3xl text-sm text-stone-500">
+            Arriendo anual por m² dividido por el precio de venta por m², con las medianas de cada comuna. Es una
+            estimación gruesa: no descuenta gastos comunes, contribuciones ni meses sin arrendatario, y compara
+            avisos distintos. Solo aparecen comunas con al menos {renta.minimo_por_lado} avisos de cada lado.
+          </p>
+          <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+            <table className="num w-full text-sm">
+              <thead className="border-b border-stone-200 text-left text-xs uppercase tracking-wide text-stone-500">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Comuna</th>
+                  <th className="px-4 py-2.5 font-medium">Tipo</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Venta UF/m²</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Arriendo UF/m² al mes</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Rentabilidad bruta</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {renta.filas.map((f) => (
+                  <tr key={`${f.comuna}-${f.tipo_inmueble}`}>
+                    <td className="px-4 py-2.5">{f.comuna}</td>
+                    <td className="px-4 py-2.5 text-stone-500">{f.tipo_inmueble === 'casa' ? 'Casas' : 'Departamentos'}</td>
+                    <td className="px-4 py-2.5 text-right">{num(f.venta_uf_m2, 1)}</td>
+                    <td className="px-4 py-2.5 text-right">{num(f.arriendo_uf_m2_mes, 3)}</td>
+                    <td className="px-4 py-2.5 text-right font-medium">{num(f.rentabilidad_bruta_pct, 1)} %</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

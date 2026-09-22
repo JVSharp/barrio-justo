@@ -42,7 +42,8 @@ REF_UF_M2 = {
 ARRIENDO_TASA = 0.0045
 COLUMNAS = ["id_aviso", "fuente", "tipo_operacion", "tipo_inmueble", "titulo",
             "precio_uf", "precio_clp", "comuna", "provincia", "superficie_m2",
-            "dormitorios", "banos", "url", "fecha_primera_vista", "fecha_ultima_vista"]
+            "dormitorios", "banos", "url", "fecha_primera_vista", "fecha_ultima_vista",
+            "historial_precios"]
 
 
 def slug(texto: str) -> str:
@@ -86,6 +87,13 @@ def main() -> None:
 
             primera = HOY - timedelta(days=rnd.randint(0, 120))
             ultima = min(HOY, primera + timedelta(days=rnd.randint(0, 60)))
+            # ~15 % de los avisos cambió de precio desde que apareció (casi
+            # siempre a la baja), para que se vea el historial en la demo.
+            historial = f"{primera.isoformat()}:{precio}"
+            if precio and rnd.random() < 0.15 and (ultima - primera).days > 7:
+                inicial = round(precio * rnd.choice([1.03, 1.05, 1.08, 1.12, 0.97]), 1 if op == "arriendo" else 0)
+                medio = primera + timedelta(days=(ultima - primera).days // 2)
+                historial = f"{primera.isoformat()}:{inicial}|{medio.isoformat()}:{precio}"
             tipo_txt = "Depto" if tipo == "departamento" else "Casa"
             filas.append({
                 "id_aviso": f"DEMO-{n:05d}",
@@ -103,6 +111,7 @@ def main() -> None:
                 "url": f"https://example.invalid/demo/{n:05d}",
                 "fecha_primera_vista": primera.isoformat(),
                 "fecha_ultima_vista": ultima.isoformat(),
+                "historial_precios": historial,
             })
 
     # Un puñado de duplicados exactos (el mismo aviso visto dos veces).

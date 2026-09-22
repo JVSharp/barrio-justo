@@ -3,11 +3,12 @@ const ORDENES = [
   { valor: 'precio_asc', etiqueta: 'Precio: menor a mayor' },
   { valor: 'precio_desc', etiqueta: 'Precio: mayor a menor' },
   { valor: 'uf_m2_asc', etiqueta: 'UF/m²: menor a mayor' },
+  { valor: 'vs_mediana_asc', etiqueta: 'Más bajo vs. su comuna' },
 ];
 
 export default function Filtros({ filtros, onChange, comunas, vacio }) {
   const set = (campo) => (e) => onChange({ ...filtros, [campo]: e.target.value });
-  const activos = filtros.comuna || filtros.tipo_operacion || filtros.tipo_inmueble;
+  const activos = filtros.comuna || filtros.tipo_operacion || filtros.tipo_inmueble || filtros.posicion;
 
   return (
     <div className="flex flex-wrap items-end gap-3">
@@ -33,6 +34,15 @@ export default function Filtros({ filtros, onChange, comunas, vacio }) {
           <option value="">Todos</option>
           <option value="departamento">Departamento</option>
           <option value="casa">Casa</option>
+        </select>
+      </Campo>
+      <Campo etiqueta="Precio vs. su comuna">
+        <select value={filtros.posicion} onChange={set('posicion')} className={SELECT}>
+          <option value="">Todos</option>
+          <option value="bajo">Bajo el mercado</option>
+          <option value="en_rango">En rango</option>
+          <option value="sobre">Sobre el mercado</option>
+          <option value="sin_referencia">Sin referencia</option>
         </select>
       </Campo>
       <Campo etiqueta="Ordenar por">

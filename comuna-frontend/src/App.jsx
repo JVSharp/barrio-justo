@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from './api';
+import { api, ESTATICO } from './api';
 import Mercado from './components/Mercado';
 import Avisos from './components/Avisos';
 
@@ -66,8 +66,10 @@ export default function App() {
       <main className="mx-auto max-w-6xl px-5 py-8">
         {error ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-900">
-            <p className="font-medium">No se pudo conectar con la API ({error}).</p>
-            <p className="mt-1">
+            <p className="font-medium">
+              {ESTATICO ? `No se pudieron cargar los datos de la demo (${error}).` : `No se pudo conectar con la API (${error}).`}
+            </p>
+            <p className={ESTATICO ? 'hidden' : 'mt-1'}>
               Levántala con <code className="rounded bg-red-100 px-1">uvicorn main:app</code> desde{' '}
               <code className="rounded bg-red-100 px-1">backend/</code> y recarga.
             </p>
@@ -81,6 +83,12 @@ export default function App() {
 
       <footer className="mx-auto max-w-6xl px-5 pb-10 text-xs text-stone-400">
         {salud && `${salud.avisos.toLocaleString('es-CL')} avisos · fuente: ${salud.fuente}`}
+        {ESTATICO && ' · versión estática, sin backend · '}
+        {ESTATICO && (
+          <a href="https://github.com/JVSharp/comuna-dash" className="underline hover:text-stone-600">
+            código en GitHub
+          </a>
+        )}
       </footer>
     </div>
   );

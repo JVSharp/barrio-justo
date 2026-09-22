@@ -2,15 +2,18 @@
 
 # Comuna Dash
 
-**¿Cuánto cuesta el metro cuadrado en cada comuna del Biobío?**
+**¿Cuánto cuesta el metro cuadrado en cada comuna del Biobío? ¿Y este aviso, está caro?**
 
 Scraper de avisos inmobiliarios + API + dashboard, con un análisis que no se deja engañar por los avisos mal cargados.
+
+**[→ Ver la demo en vivo](https://jvsharp.github.io/comuna-dash/)** · sin instalar nada, con datos de demostración
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![MongoDB](https://img.shields.io/badge/MongoDB-opcional-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-30-15803D?style=flat-square)
+[![CI](https://github.com/JVSharp/comuna-dash/actions/workflows/ci.yml/badge.svg)](https://github.com/JVSharp/comuna-dash/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-55-15803D?style=flat-square)
 
 <img src="docs/img/dashboard-mercado.png" alt="Vista de mercado: mediana de UF por m² por comuna" width="860">
 
@@ -38,6 +41,28 @@ Así que ahora el análisis hace tres cosas:
 
 Las reglas están todas en [`backend/analisis.py`](backend/analisis.py), con sus tests.
 
+## ¿Este aviso está caro?
+
+Cada aviso se compara con los de su misma comuna, operación y tipo. Si su UF/m² cae bajo el cuartil inferior, queda como **bajo el mercado**; sobre el superior, **sobre el mercado**; entremedio, **en rango**. Además muestra cuánto se aleja de la mediana (por ejemplo, "−12 % vs. la mediana de Concepción").
+
+Si la comuna tiene menos de 10 avisos comparables, no se inventa una referencia: el aviso queda como **sin referencia**.
+
+En la pestaña Avisos se puede filtrar por posición y ordenar por "más bajo vs. su comuna", que en la práctica es una lista de oportunidades.
+
+### Historial de precio
+
+Cada vez que el scraper vuelve a ver un aviso, compara el precio con el último que tenía guardado. Si cambió, agrega un punto al historial. La tarjeta muestra cuántos días lleva publicado y si bajó o subió de precio desde que apareció.
+
+### Rentabilidad bruta estimada
+
+La vista Mercado cruza las medianas de venta y de arriendo por m² de cada comuna:
+
+```
+rentabilidad bruta ≈ (arriendo UF/m² al mes × 12) / venta UF/m²
+```
+
+Es una cifra gruesa (no descuenta gastos, contribuciones ni meses vacíos, y compara avisos distintos), pero sirve para ver de un vistazo en qué comunas arrendar rinde más respecto de lo que cuesta comprar.
+
 ## Cómo se ve
 
 <table>
@@ -55,7 +80,11 @@ Y este es con datos reales, del scraping que hice en 2025:
 
 > Las imágenes del dashboard y los gráficos de precios usan la **demo**: la cantidad de avisos por comuna viene del scraping real, pero los precios y superficies son inventados. Cada gráfico lo dice en el pie.
 
-## Probarlo en 2 minutos (sin MongoDB)
+## Probarlo
+
+La forma más rápida es la **[demo en vivo](https://jvsharp.github.io/comuna-dash/)**: es el mismo dashboard, compilado en modo estático y publicado en GitHub Pages. No tiene backend; los datos se exportan con las mismas funciones de la API (`scripts/exportar_estatico.py`), así que muestra exactamente las mismas cifras.
+
+### En tu máquina, sin MongoDB
 
 El repo trae un set de avisos de demo, así que no necesitas instalar nada más que Python y Node.
 
@@ -93,10 +122,11 @@ Cada aviso se guarda una vez por URL. Si vuelves a correr el scraper se actualiz
 
 | Ruta | Qué devuelve |
 |---|---|
-| `GET /propiedades` | Avisos filtrados (`comuna`, `tipo_operacion`, `tipo_inmueble`), ordenados (`orden`) y paginados. Trae `total` y marca los excluidos. |
+| `GET /propiedades` | Avisos filtrados (`comuna`, `tipo_operacion`, `tipo_inmueble`, `posicion`), ordenados (`orden`) y paginados. Cada aviso trae su UF/m², su posición frente a la comuna, días publicado, cambio de precio y, si quedó fuera del análisis, el motivo. |
 | `GET /resumen` | Mediana, p25–p75 y UF/m² por comuna, para una operación y un tipo. |
 | `GET /resumen/{comuna}` | Todas las combinaciones de una comuna. |
 | `GET /calidad` | Cuántos avisos quedaron fuera del análisis y por qué. |
+| `GET /rentabilidad` | Rentabilidad bruta estimada por comuna y tipo. |
 | `GET /comunas` · `/tipos_inmueble` · `/tipos_operacion` | Valores para los filtros. |
 | `GET /salud` | Qué fuente de datos está usando (demo o mongo). |
 
@@ -117,7 +147,10 @@ data/
   snapshot_2025_resumen_por_comuna.csv  resumen del scraping real
   demo/avisos.csv                       datos ficticios para la demo
 scripts/
-  generar_demo.py · graficos.py · capturas.py · check_db.py
+  generar_demo.py · graficos.py · capturas.py · exportar_estatico.py
+  resumen.py · check_db.py · diagnostico_portal.py
+.github/workflows/
+  ci.yml (tests, lint, build) · pages.yml (demo en vivo)
 ```
 
 ## Tests
@@ -128,7 +161,11 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
-Cubren las reglas de limpieza, la estadística, los endpoints y el scraper sin red. Uno de ellos existe por un bug real de la primera versión: la paginación agregaba `#2` a la URL, y como lo que va después de `#` nunca llega al servidor, cada página devolvía los mismos resultados.
+Cubren las reglas de limpieza, la estadística, los endpoints y el scraper sin red. Varios existen por problemas reales:
+
+- La paginación de la primera versión agregaba `#2` a la URL, y como lo que va después de `#` nunca llega al servidor, cada página devolvía los mismos resultados.
+- En 2026 el portal cambió el formato de su respuesta: cada aviso ahora viene envuelto en una "polycard" con el precio y los atributos dentro de componentes. El scraper seguía corriendo sin errores y guardaba cero avisos. Ahora lee el formato nuevo (y el antiguo), y si llega algo que no reconoce, se detiene con un mensaje en vez de fallar en silencio.
+- Los proyectos inmobiliarios nuevos publican "desde X UF". Ese no es el precio de ninguna unidad, así que quedan fuera de las medianas.
 
 ## Regenerar imágenes
 
@@ -144,9 +181,11 @@ Es un proyecto de aprendizaje. El scraper pide una página por segundo, se ident
 
 ## Lo que viene
 
-- Histórico de precios usando las fechas de primera y última vista.
-- Mapa de la región coloreado por UF/m².
-- Tiempo promedio que un aviso dura publicado, por comuna.
+El plan completo, con lo que entra y lo que no, está en [`PRD-v3.md`](PRD-v3.md). Lo siguiente:
+
+- Mapa con los avisos (el scraper ya guarda latitud y longitud).
+- Referencia por barrio en vez de por comuna: el centro de Concepción y Lomas de San Andrés no deberían compararse entre sí.
+- Un modelo de precio que explique *por qué* un aviso está caro, no solo *que* lo está.
 
 ---
 

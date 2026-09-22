@@ -4,7 +4,7 @@ import Filtros from './Filtros';
 import TarjetaAviso from './TarjetaAviso';
 
 const POR_PAGINA = 24;
-const VACIO = { comuna: '', tipo_operacion: '', tipo_inmueble: '', orden: 'reciente' };
+const VACIO = { comuna: '', tipo_operacion: '', tipo_inmueble: '', posicion: '', orden: 'reciente' };
 
 export default function Avisos() {
   const [filtros, setFiltros] = useState(VACIO);

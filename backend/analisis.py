@@ -36,13 +36,14 @@ MOTIVOS = {
     "arriendo_alto": f"Arriendo sobre {ARRIENDO_MAX_UF} UF: probable venta mal clasificada",
     "arriendo_bajo": f"Arriendo bajo {ARRIENDO_MIN_UF} UF",
     "duplicado": "Aviso duplicado (misma URL)",
+    "proyecto": "Proyecto nuevo: publica precio 'desde', no el de una unidad",
 }
 
-_NUM = re.compile(r"(\d+(?:[.,]\d+)?)")
+_NUM = re.compile(r"(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)")
 
 
 def numero(valor: Any) -> float | None:
-    """'120 m²' → 120.0 · '3' → 3.0 · '' / None / 'n/a' → None."""
+    """'120 m²' → 120.0 · '1.200 m²' → 1200.0 · '45,5' → 45.5 · '' / None → None."""
     if valor is None or valor == "":
         return None
     if isinstance(valor, (int, float)):
@@ -50,7 +51,10 @@ def numero(valor: Any) -> float | None:
     m = _NUM.search(str(valor))
     if not m:
         return None
-    return float(m.group(1).replace(",", "."))
+    t = m.group(1)
+    if re.fullmatch(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?", t):   # "1.200" o "1.200,5": punto de miles
+        t = t.replace(".", "")
+    return float(t.replace(",", "."))
 
 
 def superficie(aviso: dict) -> float | None:
@@ -62,6 +66,8 @@ def superficie(aviso: dict) -> float | None:
 
 def motivo_exclusion(aviso: dict) -> str | None:
     """Código del motivo por el que el aviso no entra al análisis, o None."""
+    if str(aviso.get("es_proyecto")).lower() in ("true", "1"):
+        return "proyecto"
     uf = numero(aviso.get("precio_uf"))
     if not uf or uf <= 0:
         return "sin_precio"
@@ -165,4 +171,130 @@ def calidad(avisos: Iterable[dict]) -> dict[str, Any]:
             {"motivo": m, "descripcion": MOTIVOS[m], "cantidad": n}
             for m, n in sorted(conteo.items(), key=lambda kv: -kv[1])
         ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# v3 · ¿Este aviso está caro? · rentabilidad bruta · historial de precio
+# ---------------------------------------------------------------------------
+
+MIN_REFERENCIA = 10   # avisos con superficie necesarios para opinar sobre un grupo
+
+Clave = tuple  # (comuna, tipo_operacion, tipo_inmueble)
+
+
+def uf_m2(aviso: dict) -> float | None:
+    m2, uf = superficie(aviso), numero(aviso.get("precio_uf"))
+    return uf / m2 if (m2 and uf) else None
+
+
+def clave(aviso: dict) -> Clave:
+    return (aviso.get("comuna"), aviso.get("tipo_operacion"), aviso.get("tipo_inmueble"))
+
+
+def referencias(avisos: Iterable[dict]) -> dict[Clave, dict[str, float]]:
+    """p25 / mediana / p75 de UF/m² por grupo, solo con avisos válidos y
+    solo para grupos con al menos MIN_REFERENCIA avisos con superficie."""
+    validos, _ = limpiar(avisos)
+    por_grupo: dict[Clave, list[float]] = defaultdict(list)
+    for a in validos:
+        v = uf_m2(a)
+        if v:
+            por_grupo[clave(a)].append(v)
+    return {
+        k: {"p25": percentil(v, .25), "mediana": percentil(v, .5), "p75": percentil(v, .75), "n": len(v)}
+        for k, v in por_grupo.items() if len(v) >= MIN_REFERENCIA
+    }
+
+
+POSICIONES = {
+    "bajo": "Bajo el mercado",
+    "en_rango": "En rango",
+    "sobre": "Sobre el mercado",
+    "sin_referencia": "Sin referencia",
+}
+
+
+def posicion(aviso: dict, refs: dict[Clave, dict[str, float]]) -> dict[str, Any]:
+    """Dónde cae la UF/m² del aviso respecto de su comuna.
+
+    bajo = bajo el p25 · en_rango = entre p25 y p75 · sobre = sobre el p75.
+    Sin superficie, excluido del análisis o grupo chico → sin_referencia.
+    """
+    ref = refs.get(clave(aviso))
+    v = uf_m2(aviso)
+    if not ref or v is None or motivo_exclusion(aviso):
+        return {"codigo": "sin_referencia", "etiqueta": POSICIONES["sin_referencia"], "vs_mediana_pct": None}
+    codigo = "bajo" if v < ref["p25"] else "sobre" if v > ref["p75"] else "en_rango"
+    return {
+        "codigo": codigo,
+        "etiqueta": POSICIONES[codigo],
+        "vs_mediana_pct": round((v / ref["mediana"] - 1) * 100),
+    }
+
+
+def rentabilidad(avisos: Iterable[dict]) -> list[dict[str, Any]]:
+    """Rentabilidad bruta anual estimada por comuna y tipo:
+    (mediana UF/m² de arriendo mensual × 12) / mediana UF/m² de venta.
+
+    Es una aproximación gruesa: no descuenta gastos, contribuciones ni
+    vacancia, y compara medianas de avisos distintos.
+    """
+    refs = referencias(avisos)
+    filas = []
+    for (comuna, op, tipo), venta in refs.items():
+        if op != "venta":
+            continue
+        arriendo = refs.get((comuna, "arriendo", tipo))
+        if not arriendo:
+            continue
+        filas.append({
+            "comuna": comuna,
+            "tipo_inmueble": tipo,
+            "venta_uf_m2": round(venta["mediana"], 1),
+            "arriendo_uf_m2_mes": round(arriendo["mediana"], 3),
+            "rentabilidad_bruta_pct": round(arriendo["mediana"] * 12 / venta["mediana"] * 100, 1),
+            "n_venta": venta["n"],
+            "n_arriendo": arriendo["n"],
+        })
+    filas.sort(key=lambda f: -f["rentabilidad_bruta_pct"])
+    return filas
+
+
+def _fecha(s: Any):
+    from datetime import date
+    try:
+        return date.fromisoformat(str(s)[:10])
+    except ValueError:
+        return None
+
+
+def historial(aviso: dict) -> dict[str, Any]:
+    """Días publicado y cambio de precio desde la primera vez que se vio."""
+    ini, fin = _fecha(aviso.get("fecha_primera_vista")), _fecha(aviso.get("fecha_ultima_vista"))
+    dias = (fin - ini).days if (ini and fin and fin >= ini) else None
+    puntos = aviso.get("historial_precios") or []
+    if isinstance(puntos, str):          # demo en CSV: "2026-06-01:3200|2026-08-01:3050"
+        puntos = [{"fecha": p.split(":")[0], "precio_uf": numero(p.split(":")[1])}
+                  for p in puntos.split("|") if ":" in p]
+    cambio = None
+    if puntos:
+        primero = numero(puntos[0].get("precio_uf"))
+        actual = numero(aviso.get("precio_uf"))
+        if primero and actual and primero != actual:
+            cambio = round((actual / primero - 1) * 100, 1)
+    return {"dias_publicado": dias, "cambio_precio_pct": cambio, "cambios_de_precio": max(0, len(puntos) - 1)}
+
+
+def enriquecer(aviso: dict, refs: dict[Clave, dict[str, float]]) -> dict[str, Any]:
+    """Lo que la API agrega a cada aviso: UF/m², motivo de exclusión,
+    posición frente a su comuna e historial. Lo usan la API y la demo estática."""
+    m = motivo_exclusion(aviso)
+    v = uf_m2(aviso)
+    return {
+        **{k: val for k, val in aviso.items() if k != "_id"},
+        "uf_m2": round(v, 2) if v else None,
+        "motivo_exclusion": MOTIVOS[m] if m else None,
+        "posicion": posicion(aviso, refs),
+        **historial(aviso),
     }

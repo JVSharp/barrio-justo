@@ -69,32 +69,53 @@ def tipos_operacion(repo: Repo) -> list[str]:
     return repo.distintos("tipo_operacion")
 
 
+def refs_de(repo: Repositorio) -> dict:
+    """Referencias de UF/m² por grupo. Dependen de todos los avisos (no solo
+    de la página pedida), así que se guardan en el repositorio por 60 s."""
+    import time
+
+    ahora = time.monotonic()
+    guardado = getattr(repo, "_cache_refs", None)
+    if guardado and ahora - guardado[0] < 60:
+        return guardado[1]
+    refs = analisis.referencias(repo.todos({}))
+    repo._cache_refs = (ahora, refs)
+    return refs
+
+
+Posicion = Literal["bajo", "en_rango", "sobre", "sin_referencia"]
+
+
 @app.get("/propiedades", tags=["avisos"])
 def propiedades(
     repo: Repo,
     comuna: str | None = None,
     tipo_operacion: Operacion | None = None,
     tipo_inmueble: Inmueble | None = None,
-    orden: Literal["reciente", "precio_asc", "precio_desc", "uf_m2_asc"] = "reciente",
+    posicion: Posicion | None = None,
+    orden: Literal["reciente", "precio_asc", "precio_desc", "uf_m2_asc", "vs_mediana_asc"] = "reciente",
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 24,
 ):
-    """Avisos filtrados y paginados. Cada aviso trae `motivo_exclusion` si
-    no entra en las estadísticas (y por qué)."""
+    """Avisos filtrados y paginados. Cada aviso trae su UF/m², si quedó fuera
+    del análisis (y por qué), dónde cae frente a su comuna (`posicion`) y su
+    historial (`dias_publicado`, `cambio_precio_pct`)."""
+    refs = refs_de(repo)
     avisos = repo.todos(_filtro(comuna=comuna, tipo_operacion=tipo_operacion,
                                 tipo_inmueble=tipo_inmueble))
+    avisos = [analisis.enriquecer(a, refs) for a in avisos]
+    if posicion:
+        avisos = [a for a in avisos if a["posicion"]["codigo"] == posicion]
     avisos = repositorio.ordenar(avisos, orden)
-    pagina = []
-    for a in avisos[skip: skip + limit]:
-        m = analisis.motivo_exclusion(a)
-        m2 = analisis.superficie(a)
-        uf = analisis.numero(a.get("precio_uf"))
-        pagina.append({
-            **a,
-            "uf_m2": round(uf / m2, 2) if (m2 and uf) else None,
-            "motivo_exclusion": analisis.MOTIVOS[m] if m else None,
-        })
-    return {"total": len(avisos), "skip": skip, "limit": limit, "items": pagina}
+    return {"total": len(avisos), "skip": skip, "limit": limit, "items": avisos[skip: skip + limit]}
+
+
+@app.get("/rentabilidad", tags=["estadísticas"])
+def rentabilidad(repo: Repo):
+    """Rentabilidad bruta anual estimada por comuna y tipo:
+    (mediana UF/m² de arriendo mensual × 12) / mediana UF/m² de venta.
+    No descuenta gastos, contribuciones ni vacancia."""
+    return {"minimo_por_lado": analisis.MIN_REFERENCIA, "filas": analisis.rentabilidad(repo.todos({}))}
 
 
 @app.get("/resumen", tags=["estadísticas"])
