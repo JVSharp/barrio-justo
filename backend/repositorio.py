@@ -87,10 +87,11 @@ class DemoRepositorio:
             if k == "url":
                 continue
             if k.startswith(("dist_", "sol_")):
+                # Números, salvo campos de texto como sol_fuente ("demo" / "osm").
                 try:
                     out[k] = float(v) if v not in ("", None) else None
                 except ValueError:
-                    out[k] = None
+                    out[k] = v
             else:
                 out[k] = v or None
         return out

@@ -56,8 +56,9 @@ def test_demo_une_metricas_geo_por_url(tmp_path):
     p = tmp_path / "avisos.csv"
     p.write_text("url,precio_uf,latitud,longitud\nx,1,-36.8,-73.0\ny,1,-36.8,-73.0\n", encoding="utf-8")
     (tmp_path / "geo.csv").write_text(
-        "url,dist_biotren,cerca_biotren,sol_calle,sol_calidad\nx,350,Estación A,4.5,\n", encoding="utf-8")
+        "url,dist_biotren,cerca_biotren,sol_calle,sol_calidad,sol_fuente\nx,350,Estación A,4.5,,demo\n", encoding="utf-8")
     x, y = DemoRepositorio(p).todos({})
     assert x["dist_biotren"] == 350.0 and x["cerca_biotren"] == "Estación A"
     assert x["sol_calle"] == 4.5 and x["sol_calidad"] is None
+    assert x["sol_fuente"] == "demo"            # texto, no se convierte a número
     assert "dist_biotren" not in y
